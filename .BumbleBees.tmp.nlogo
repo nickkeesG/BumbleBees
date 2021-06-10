@@ -17,7 +17,7 @@ breed [eggs egg]
 
 to queen.config
   set dom queen-dom-init
-  set color orange
+  set color black
   set xcor 0
   set ycor 0
 end
@@ -50,10 +50,14 @@ to setup-patch
     set pcolor green
     set region "outside"
   ]
+
+
 end
 
 to go
+  ask queens [
 
+  ]
   tick
 end
 @#$#@#$#@
@@ -83,21 +87,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-SLIDER
-0
-0
-0
-0
-NIL
-NIL
-0
-100
-50.0
-1
-1
-NIL
-HORIZONTAL
 
 BUTTON
 574
@@ -144,6 +133,36 @@ queen-dom-init
 10
 7.5
 0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+45
+179
+78
+worker-dom-init
+worker-dom-init
+0
+5
+1.0
+0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+80
+191
+113
+observable-range
+observable-range
+0
+50
+10.0
+1
 1
 NIL
 HORIZONTAL

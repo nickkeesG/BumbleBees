@@ -53,7 +53,9 @@ to setup-patch
 end
 
 to go
+  ask queens [
 
+  ]
   tick
 end
 @#$#@#$#@
@@ -144,6 +146,21 @@ worker-dom-init
 5
 1.0
 0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+80
+191
+113
+observable-range
+observable-range
+0
+50
+10.0
+1
 1
 NIL
 HORIZONTAL
