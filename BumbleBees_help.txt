@@ -1,0 +1,486 @@
+;; The bumblebee model uses days as unit of time, and simulates a colony year-round (270 days; queens overwinter solo and start a new colony next spring)
+;; 0.01 day is the smallest time unit used (== tick): 1 day == 100 ticks
+
+globals
+[
+  days                       ;; day counter
+  W-dom-center               ;; average dominance of workers in the nest center
+  W-dom-peri                 ;; average dominance of workers in the nest periphery
+  Q-eggs                     ;; number of queen-laid eggs
+  W-eggs                     ;; number of worker-laid eggs
+  E-eggs                     ;; number of eaten eggs
+
+  egg-dev-time               ;; developmental time of an egg (days)
+  egg-dev-stdev              ;; standard deviation of egg developmental time (days)
+  larva-dev-time             ;; developmental time of a larva (days)
+  larva-dev-stdev            ;; standard deviation of larval developmental time (days)
+  queen-dev-time             ;; developmental time of a new queen larva (days)
+  pupa-dev-time              ;; developmental time of a pupa (days)
+  pupa-dev-stdev             ;; standard deviation of pupal developmental time (days)
+  suppress-time              ;; max age to suppress the development of a new queen (days)
+  ovipos-time                ;; duration of oviposition (days)
+  worker-egg-prob            ;; probability to lay egg as a worker
+  first-brood                ;; initial number of eggs to start the colony
+
+  init-honey                 ;; initial amount of food in the honey pot
+  max-bite                   ;; maximum amount of food to eat
+  larva-bite                 ;; amount of food fed to a worker larva
+  queen-bite                 ;; amount of food fed to a queen larva
+  queen-food                 ;; minimum amount of food to induce new queen development
+  digest-rate                ;; amount of food used per day
+  eating-time                ;; duration of eating event
+  new-honey                  ;; amount of food added by a foraging event
+  foraging-time              ;; duration of foraging event
+
+  queen-dom-init             ;; initial dominance of the queen
+  worker-dom-init            ;; initial dominance of the workers
+  step-dom                   ;; dominance scaling factor
+  center-time                ;; maximum idle time to stay in the nest center
+  stress-drone               ;; stress treshold to lay drone eggs
+  stress-kill                ;; stress treshold to leave the nest
+  activation-time            ;; maximum idle time to next activation
+]
+
+breed [ queens queen ]
+breed [ workers worker ]
+breed [ drones drone ]
+breed [ new-queens new-queen ]
+breed [ eggs egg ]
+breed [ larvae larva ]
+breed [ pupae pupa ]
+
+queens-own [
+  dom                 ;; dominance value determining social rank
+  food                ;; amount of food in stomach
+  stress              ;; amount of stress during oviposition events
+  wait-time           ;; counter to monitor the time between interactions
+  ovi-time            ;; counter to monitor the duration of oviposition
+  eat-time            ;; counter to monitor the duration of eating
+  ovi?                ;; boolean variable: true if oviposition was succesful, false otherwise; use to determine if an egg is laid
+  out?                ;; boolean variable: true if worker is outside the nest, false otherwise; always false for a queen!
+]
+
+workers-own [
+  dom                 ;; dominance value determining social rank
+  food                ;; amount of food in stomach
+  wait-time           ;; counter to monitor the time between interactions
+  ovi-time            ;; counter to monitor the duration of oviposition
+  eat-time            ;; counter to monitor the duration of eating
+  out-time            ;; counter to monitor the duration of eating
+  ovi?                ;; boolean variable: true if oviposition was succesful, false otherwise; use to determine if an egg is laid
+  out?                ;; boolean variable: true if worker is outside the nest, false otherwise; use to distinguish foragers
+]
+
+eggs-own [
+  sex                 ;; indicates whether the egg will become a drone ("D"), a worker ("W") or a new queen ("Q")
+  age                 ;; counter to monitor the developmental time
+  motherID            ;; ID-number of agent that laid the egg; use to check whether an egg should be eaten
+]
+
+larvae-own [
+  sex                 ;; indicates whether the larva will become a drone ("D"), a worker ("W") or a new queen ("Q")
+  age                 ;; counter to monitor the developmental time
+  food                ;; amount of food in stomach
+]
+
+pupae-own [
+  sex                 ;; indicates whether the pupa will become a drone ("D"), a worker ("W") or a new queen ("Q")
+  age                 ;; counter to monitor the developmental time
+]
+
+new-queens-own [  ]   ;; no parameters needed
+drones-own [  ]       ;; no parameters needed
+
+patches-own [
+  honey               ;; amount of honey: zero for all patches but the honey pot
+  honey-pot?          ;; boolean variable: true if patch is part of the honey pot, false otherwise
+  nest-center?        ;; boolean variable: true if patch is part of the nest center, false otherwise
+  nest-peri?          ;; boolean variable: true if patch is part of the nest periphery, false otherwise
+  outside?            ;; boolean variable: true if patch is not part of the nest, false otherwise
+]
+
+to init-globals
+  set days 0
+  set egg-dev-time 4                   ;; days
+  set egg-dev-stdev 1                  ;; days
+  set larva-dev-time 7                 ;; days
+  set larva-dev-stdev 2                ;; days
+  set queen-dev-time 10                ;; 7 plus 3 extra days
+  set pupa-dev-time 10                 ;; days
+  set pupa-dev-stdev 2                 ;; days
+  set suppress-time 4                  ;; days
+  set ovipos-time 0.04                 ;; days
+  set worker-egg-prob 0.01             ;; probability to lay eggs as a worker
+  set first-brood 5                    ;; workers
+  set init-honey 10
+  set max-bite 1
+  set larva-bite 0.2
+  set queen-bite 0.3
+  set queen-food 5.5
+  set digest-rate (0.2 / 100)          ;; food/day recalculated as food/tick
+  set eating-time 0.2                  ;; days
+  set new-honey 2
+  set foraging-time 0.3                ;; days
+  set queen-dom-init 7.5
+  set worker-dom-init 1
+  set step-dom 0.15                    ;; default = 0.15
+  set center-time 0.15                 ;; days
+  set stress-drone 1
+  set stress-kill 3
+  set activation-time 0.1              ;; days
+
+  set W-dom-center worker-dom-init
+  set W-dom-peri worker-dom-init
+  set Q-eggs 0
+  set W-eggs 0
+  set E-eggs 0
+end
+
+to setup-nest                          ;; patch procedure
+    set outside? true
+    set nest-center? (distancexy 0 0) < (0.6 * max-pxcor)
+    set nest-peri? (distancexy 0 0) < (0.8 * max-pxcor)
+    set honey-pot? (distancexy 0 (0.7 * max-pycor)) < 6
+    set pcolor green
+    set honey 0
+    if nest-center?
+    [
+      set nest-peri? false
+      set honey-pot? false
+      set outside? false
+      set pcolor sky
+    ]
+    if honey-pot?
+    [
+      set nest-center? false
+      set nest-peri? false
+      set outside? false
+      set pcolor yellow
+      set honey init-honey
+    ]
+    if nest-peri?
+    [
+      set nest-center? false
+      set honey-pot? false
+      set outside? false
+      set pcolor blue
+    ]
+end
+
+
+to setup-colony
+  set-default-shape eggs "circle"
+  set-default-shape larvae "bug"
+  set-default-shape pupae "hex"
+  set-default-shape queens "bee"
+  set-default-shape new-queens "bee"
+  set-default-shape workers "bee"
+  set-default-shape drones "bee"
+  create-queens 1
+  [
+    set size 5
+    set color orange
+    set dom queen-dom-init
+    set wait-time 0
+    set ovi-time 0
+    set eat-time 0
+    set ovi? true
+    set out? false
+    set food max-bite
+    set stress 0
+    while [count eggs < first-brood]
+    [
+      lay-egg set Q-eggs Q-eggs + 1
+    ]
+  ]
+end
+
+
+to setup
+  clear-all
+  init-globals
+  ask patches
+  [ setup-nest ]
+  setup-colony
+  reset-ticks
+end
+
+
+to go
+;  if (ticks mod 100 = 0) [set days days + 1 ask (turtle-set eggs larvae pupae) [ set age age + 1 ] ]
+;  if (days = 270)
+;  [ stop ]
+;  ask  workers  ;; update foraging
+;  [
+;    if (out-time > 0)
+;    [
+;      set out-time out-time - 1
+;    ]
+;    if (out? and (out-time = 0))
+;    [
+;      ask patches with [ honey-pot? ]
+;      [
+;        set honey honey + new-honey
+;      ]
+;      move-to one-of patches with [ honey-pot? ]
+;      set out? false
+;      set eat-time (eating-time * 100)
+;    ]
+;  ]
+;
+;  ask (turtle-set queens workers)  ;; update eating
+;  [
+;   if (food > 0)
+;   [
+;     set food food - digest-rate
+;   ]
+;   ifelse (is-worker? self)
+;   [
+;     if (not out? and eat-time = 0 and food <= 0)
+;     [ eat ]
+;   ]
+;   [
+;     if (food <= 0)
+;     [ eat ]
+;   ]
+;   if (eat-time > 0)
+;   [
+;     set eat-time eat-time - 1
+;     if (eat-time = 0)
+;     [
+;       move-to one-of patches with [ nest-center? ]
+;     ]
+;    ]
+;  ]
+;  ask (turtle-set queens workers)  ;; update ovipositing and waiting time & check for activation
+;  [
+;    if (ovi-time > 0)
+;    [
+;      set ovi-time ovi-time - 1
+;      if (ovi-time = 0)
+;      [
+;        ifelse (is-queen? self)
+;        [
+;          lay-egg
+;          set Q-eggs Q-eggs + 1
+;        ]
+;        [
+;          if (ovi?)
+;          [
+;            lay-egg set W-eggs W-eggs + 1
+;          ]
+;        ]
+;      ]
+;    ]
+;    set wait-time wait-time + 1
+;    if ((ovi-time = 0) and (eat-time = 0) and (not out?))  ;; no activations take place while eating, foraging or ovipositing
+;    [
+;    if (is-worker? self)
+;    [
+;      if ((wait-time > (center-time * 100)) and ([ nest-center? ] of patch-here))
+;      [
+;        move-to one-of patches with [ nest-peri? ]
+;        ]
+;      ]
+;      if (wait-time > (activation-time * 100) / dom)
+;    [
+;      if ([ nest-peri? ] of patch-here)
+;      [
+;        move-to one-of patches with [ nest-center? ]
+;        ]
+;      do-activation
+;      set wait-time 0
+;      ]
+;    ]
+;  ]
+;
+;  ask eggs                         ;; update the age of the eggs
+;  [
+;    if (age > random-normal egg-dev-time egg-dev-stdev)
+;    [
+;      set breed larvae
+;      set size 2
+;      set color white
+;      set age 0
+;      set food 0
+;    ]
+;  ]
+;
+;  ask larvae                       ;; update the age of the larvae
+;  [
+;    ifelse (sex = "Q")
+;    [
+;      if (age > random-normal queen-dev-time larva-dev-stdev)
+;      [
+;        set breed pupae
+;        set size 2
+;        set color white
+;        set age 0
+;      ]
+;    ]
+;    [
+;      if (age > random-normal larva-dev-time larva-dev-stdev)
+;      [
+;        set breed pupae
+;        set size 2
+;        set color white
+;        set age 0
+;      ]
+;    ]
+;  ]
+;
+;  ask pupae                        ;; update the age of the pupae
+;  [
+;    if (age > random-normal pupa-dev-time pupa-dev-stdev)
+;    [
+;      ifelse (sex = "Q")
+;      [
+;        set breed new-queens
+;        set size 3
+;        set color orange
+;      ]
+;      [
+;        ifelse (sex = "W")
+;        [
+;          set breed workers
+;          set size 2
+;          set color red
+;          set wait-time 0
+;          set dom worker-dom-init
+;          set eat-time 0
+;          set out-time 0
+;          set out? false
+;          set ovi? false
+;        ]
+;        [
+;          set breed drones
+;          set size 3
+;          set color black
+;        ]
+;      ]
+;    ]
+;  ]
+;   ;; update the output parameters to plot in your graphs
+;  if (any? workers-on patches with [ nest-center? ])
+;  [
+;    set W-dom-center mean [ dom ] of workers-on patches with [ nest-center? ]
+;  ]
+;  if (any? workers-on patches with [ nest-peri? ])
+;  [
+;    set W-dom-peri mean [ dom ] of workers-on patches with [ nest-peri? ]
+;  ]
+;  tick
+end
+
+
+to do-activation                    ;; turtle procedure
+ ; create a local variable called bumble (what was the difference between let and set?)
+ ; is the interaction partner larvae pupa worker? consider the functions that should be called if any of these
+ ; if the interaction partner is pupa, what role does the ovi-time variable play?
+end
+
+
+to do-dom-interaction [bumble]      ;; turtle procedure
+
+;tips
+; The equations for dominance interaction can be found both in the paper and the exercise
+; Is the bumble or the focal individual a worker? make sure to change ovi? - read the paper why (when do workers lay eggs?)
+; Is the bumble or the focal individual a queen? What happens to her stress levels?
+
+
+end
+
+
+to lay-egg                          ;; turtle procedure
+  move-to one-of patches with [ nest-center? ]
+  ifelse (is-queen? self)
+  [
+    ifelse (stress > stress-drone)
+    [
+      hatch-eggs 1
+      [
+        set size 1
+        set color white
+        set age 0
+        set motherID [who] of myself
+        set sex "D"
+      ]
+    ]
+    [
+      hatch-eggs 1
+      [
+        set size 1
+        set color white
+        set age 0
+        set motherID [who] of myself
+        set sex "W"
+      ]
+    ]
+    ifelse (stress > stress-kill)
+    [ die ]
+    [ set stress 0 ]
+  ]
+  [
+    if (ovi?)
+    [
+      hatch-eggs 1
+      [
+        set size 1
+        set color white
+        set age 0
+        set motherID [who] of myself
+        set sex "D"
+      ]
+      set ovi? false
+    ]
+  ]
+end
+
+
+to eat-egg [bumble]                 ;; turtle procedure
+   ;is the eater a queen or a worker?
+   ; is the egg layed by themselves? (motherID)
+   ; what is the E-eggs variable? how should this change?
+
+end
+
+
+to feed [bumble]                    ;; turtle procedure
+
+ ;tips
+ ;Is the feeder a queen or a worker?
+ ; What do queens do when they notice a queen-larvae? something with inhibition?
+ ; When do queens feed the larvae? What time period?
+ ; How much food is given to queen larvae or worker larvae? Where is the food coming from, and should that resource decrease when giving food?
+ ; when there is insufficient food in that resource, the larvae should not get food that time.
+ ; When do larvae turn into queen-larvae? (sex = "Q" or sex = "W")
+
+end
+
+
+to oviposit [bumble]                ;; turtle procedure
+ ;tips
+ ;how probable is it that the queen lays an egg?
+ ; how probable is it that a worker lays an egg?
+ ; what is ovi-time? what happens to it?
+end
+
+
+to eat                              ;; turtle procedure
+; things to think of: how much food?
+; to where does the bee move?
+; what is the relation between the dominance and the bite to eat?
+; what is the equation for determining when the bee goes foraging?
+; if the bee should go foraging, call the function 'forage'.
+; if the bite that the bee wants to take, is larger than the amount available at the patch, the amount eaten should equal the amount available
+; the amount of honey eaten, should be removed from the source
+
+end
+
+
+to forage                           ;; turtle procedure
+; to where should the bee move?
+; how long should it stay there? (think of the variable out-time)
+; what does the variable out? do?
+end
+

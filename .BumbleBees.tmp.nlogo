@@ -17,7 +17,7 @@ breed [eggs egg]
 
 to queen.config
   set dom queen-dom-init
-  set color black
+  set color orange
   set xcor 0
   set ycor 0
 end
@@ -84,6 +84,21 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+SLIDER
+0
+0
+0
+0
+NIL
+NIL
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
 BUTTON
 574
 20
@@ -128,21 +143,6 @@ queen-dom-init
 0
 10
 7.5
-0.5
-1
-NIL
-HORIZONTAL
-
-SLIDER
-7
-45
-179
-78
-worker-dom-init
-worker-dom-init
-0
-5
-1.0
 0.5
 1
 NIL
