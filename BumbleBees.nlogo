@@ -10,14 +10,7 @@ patches-own [
 turtles-own [
   dom
   age
-]
-
-queens-own [
-  eggs-batch-size
-]
-
-workers-own [
-  eggs-batch-size
+  food
 ]
 
 eggs-own [
@@ -39,7 +32,7 @@ to queen.config
   set xcor 0
   set ycor 0
   set age 0
-  set eggs-batch-size random-binomial 16 0.5 ;; queen lays about 4 to 16 eggs
+  set food 1
 end
 
 to worker.config
@@ -80,26 +73,41 @@ to setup-patch
     set pcolor green
     set region "outside"
   ]
+
+  if (pxcor = 0) and (pycor = 0) [
+    set honey 10
+    set region "honeypot"
+    set pcolor yellow
+  ]
 end
 
 ;;ALL OTHER METHODS
 to go
+  ask (turtle-set queens workers) [
+    build-honey-pots
+  ]
   ask queens [
+
+  ]
+  ask workers [
+
+  ]
+  ask eggs [
 
   ]
 
   increment-model-time
 end
 
+to build-honey-pots
+
+end
+
 to increment-model-time
   set days days + 0.01
   ask turtles [ set age age + 0.01]
+  ask (turtle-set queens workers) [ set food food - (digest-rate / 100)]
   tick
-end
-
-;;CUSTOM NETLOGO METHODS
-to-report random-binomial [n p]
-     report sum n-values n [ifelse-value (random-float 1 < p) [1] [0]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -236,6 +244,21 @@ egg-hatch-time-std
 0.1
 1
 days
+HORIZONTAL
+
+SLIDER
+6
+188
+178
+221
+digest-rate
+digest-rate
+0
+1
+0.2
+0.1
+1
+NIL
 HORIZONTAL
 
 @#$#@#$#@
