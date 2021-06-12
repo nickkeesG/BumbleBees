@@ -1,3 +1,7 @@
+globals [
+  days
+]
+
 patches-own [
   honey
   region
@@ -5,6 +9,19 @@ patches-own [
 
 turtles-own [
   dom
+  age
+]
+
+queens-own [
+  eggs-batch-size
+]
+
+workers-own [
+  eggs-batch-size
+]
+
+eggs-own [
+  hatch-time
 ]
 
 breed [queens queen]
@@ -15,20 +32,33 @@ breed [drones drone]
 breed [larvae larva]
 breed [eggs egg]
 
+;;CONFIG METHODS - for generating new members of each breed
 to queen.config
   set dom queen-dom-init
   set color black
   set xcor 0
   set ycor 0
+  set age 0
+  set eggs-batch-size random-binomial 16 0.5 ;; queen lays about 4 to 16 eggs
 end
 
 to worker.config
   set dom worker-dom-init
   set color orange
+  set age 0
 end
 
+to egg.config
+  set hatch-time random-normal egg-hatch-time-mean egg-hatch-time-std
+  set age 0
+  set color grey
+  set shape "circle"
+end
+
+;;SETUP METHODS
 to setup
   clear-all
+  set days 0
   ask patches [ setup-patch ]
   create-queens 1 [ queen.config ]
   reset-ticks
@@ -52,11 +82,24 @@ to setup-patch
   ]
 end
 
+;;ALL OTHER METHODS
 to go
   ask queens [
 
   ]
+
+  increment-model-time
+end
+
+to increment-model-time
+  set days days + 0.01
+  ask turtles [ set age age + 0.01]
   tick
+end
+
+;;CUSTOM NETLOGO METHODS
+to-report random-binomial [n p]
+     report sum n-values n [ifelse-value (random-float 1 < p) [1] [0]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -153,7 +196,7 @@ HORIZONTAL
 SLIDER
 7
 80
-191
+245
 113
 observable-range
 observable-range
@@ -162,7 +205,37 @@ observable-range
 10.0
 1
 1
-NIL
+patches
+HORIZONTAL
+
+SLIDER
+6
+115
+260
+148
+egg-hatch-time-mean
+egg-hatch-time-mean
+0
+10
+4.0
+0.5
+1
+days
+HORIZONTAL
+
+SLIDER
+6
+152
+233
+185
+egg-hatch-time-std
+egg-hatch-time-std
+0
+5
+1.0
+0.1
+1
+days
 HORIZONTAL
 
 @#$#@#$#@
