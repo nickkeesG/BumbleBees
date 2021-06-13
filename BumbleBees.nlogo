@@ -71,8 +71,9 @@ end
 to pupa.config
   set dev-time random-normal pupa-dev-time-mean pupa-dev-time-std
   set age 0
-  set color orange
-  set shape "circle"
+  set color green
+  set shape "triangle"
+  set size 1
 end
 
 ;;SETUP METHODS
@@ -128,12 +129,6 @@ to go
       ]
     ]
   ]
-  ask queens [
-
-  ]
-  ask workers [
-
-  ]
   ask eggs [
     if age >= dev-time [
       ask patch-here [
@@ -175,8 +170,12 @@ to select-task
     lay-egg
   ]
   if not busy? [
+    dominate
+  ]
+  if not busy? [
     set task "no-task"
-    set target one-of patches with [not (region = "outside") and (distance myself < 3)]
+    set target one-of patches with [not (region = "outside") and (distance myself < 4)]
+    if target = NOBODY [ set target min-one-of patches with [not (region = "outside")] [distance myself]]
     set heading towards target
     set busy? True
   ]
@@ -193,12 +192,15 @@ end
 
 to build-honeypot
   if count turtles with [task = "build-honeypot"] = 0 [
-    if (get-expected-honey / count patches with [honeypot?]) > 10 [
+    if (get-expected-honey / count patches with [honeypot?]) > max-honey-per-pot [
       let target-pot one-of patches with [honeypot?]
-      set target one-of patches with [distance target-pot <= honeypot-max-dist]
-      set heading towards target
-      set busy? True
-      set task "build-honeypot"
+      set target one-of patches with [distance target-pot <= honeypot-max-dist
+      and not (honeypot? or egg-here? or dev-here?)]
+      if not (target = NOBODY) [
+        set heading towards target
+        set busy? True
+        set task "build-honeypot"
+      ]
     ]
   ]
 end
@@ -209,7 +211,7 @@ to-report get-expected-honey
 end
 
 to forage
-  if (get-expected-honey / count patches with [honeypot?]) < 5 [
+  if (get-expected-honey / count patches with [honeypot?]) < min-honey-per-pot [
     set target one-of patches with [region = "outside"]
     set heading towards target
     set busy? True
@@ -219,8 +221,18 @@ to forage
   ]
 end
 
+to flee [other-bee]
+  set heading towards other-bee
+  rt 180
+  set target one-of patches in-cone 5 20
+  set heading towards target
+  set task "flee"
+  set color violet
+  set busy? True
+end
+
 to lay-egg
-  if is-queen? self and ovi-wait-time <= 0 [
+  if (is-queen? self) and ovi-wait-time <= 0 [
     let target-egg patch 0 0
     if count patches with [egg-here?] > 0 [
       set target-egg one-of patches with [egg-here?]
@@ -234,6 +246,26 @@ to lay-egg
       set heading towards target
       set busy? True
       set task "lay-egg"
+    ]
+  ]
+end
+
+to dominate
+  let nearest-bee min-one-of other (turtle-set queens workers) with [not in-flight?] [distance myself]
+  if (not (nearest-bee = NOBODY)) and (distance nearest-bee <= dominance-radius) [
+    let p dom / (dom + [dom] of nearest-bee)
+    let k 0
+    if (random-float 1 < p) [
+      set k 1
+    ]
+    set dom max list (dom + ((k - p) * dom-step)) 0.1
+    ask nearest-bee [ set dom max list (dom - ((k - p) * dom-step)) 0.1]
+
+    ifelse k = 1 [
+      ask nearest-bee [ flee myself ]
+    ]
+    [
+      flee nearest-bee
     ]
   ]
 end
@@ -257,13 +289,14 @@ to finish-task
     set busy? False
   ]
   if task = "forage" [
-    ifelse flowers-visited = 10 [
+    ifelse flowers-visited = flowers-per-forage [
       set task "return"
       set target one-of patches with [honeypot?]
       set heading towards target
     ]
     [
-      set target one-of patches with [region = "outside" and (distance myself < 10)]
+      set target one-of patches with [region = "outside" and (distance myself < 5)]
+      if target = NOBODY [ set target one-of patches with [region = "outside"] ]
       set heading towards target
       set flowers-visited flowers-visited + 1
     ]
@@ -279,6 +312,15 @@ to finish-task
   if task = "no-task" [
     set busy? False
   ]
+  if task = "flee" [
+    ifelse is-queen? self [
+      set color black
+    ]
+    [
+      set color orange
+    ]
+    set busy? False
+  ]
 end
 
 to increment-model-time
@@ -286,6 +328,11 @@ to increment-model-time
   ask turtles [ set age age + 0.01]
   ask (turtle-set queens workers) [ set food food - (digest-rate / 100)]
   ask queens [set ovi-wait-time ovi-wait-time - 0.01]
+  ask workers [
+    if age > 28 [
+      die
+    ]
+  ]
   tick
 end
 @#$#@#$#@
@@ -383,13 +430,13 @@ HORIZONTAL
 SLIDER
 7
 80
-230
+247
 113
-observable-range
-observable-range
+dominance-radius
+dominance-radius
 0
-50
-10.0
+32
+3.0
 1
 1
 patches
@@ -595,6 +642,66 @@ pupa-dev-time-std
 1
 1
 days
+HORIZONTAL
+
+SLIDER
+232
+83
+424
+116
+max-honey-per-pot
+max-honey-per-pot
+0
+20
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+232
+118
+420
+151
+min-honey-per-pot
+min-honey-per-pot
+0
+20
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+232
+153
+420
+186
+flowers-per-forage
+flowers-per-forage
+0
+20
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+232
+190
+404
+223
+dom-step
+dom-step
+0
+1
+0.15
+0.01
+1
+NIL
 HORIZONTAL
 
 @#$#@#$#@
