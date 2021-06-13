@@ -1,16 +1,24 @@
 globals [
   days
+  honey
 ]
 
 patches-own [
-  honey
   region
+  honeypot?
 ]
 
 turtles-own [
   dom
   age
   food
+  target
+  busy?
+  task
+]
+
+queens-own [
+  ovi-wait-time
 ]
 
 eggs-own [
@@ -33,6 +41,8 @@ to queen.config
   set ycor 0
   set age 0
   set food 1
+  set busy? False
+  set ovi-wait-time 0
 end
 
 to worker.config
@@ -52,13 +62,14 @@ end
 to setup
   clear-all
   set days 0
+  set honey 10
   ask patches [ setup-patch ]
   create-queens 1 [ queen.config ]
   reset-ticks
 end
 
 to setup-patch
-  set honey 0
+  set honeypot? False
 
   let distFromCenter sqrt (pxcor * pxcor + pycor * pycor)
   if distFromCenter < 14 [
@@ -75,8 +86,7 @@ to setup-patch
   ]
 
   if (pxcor = 0) and (pycor = 0) [
-    set honey 10
-    set region "honeypot"
+    set honeypot? True
     set pcolor yellow
   ]
 end
@@ -84,7 +94,19 @@ end
 ;;ALL OTHER METHODS
 to go
   ask (turtle-set queens workers) [
-    build-honey-pots
+    select-task
+    if busy? [
+      ifelse patch-here = target [
+        finish-task
+      ]
+      [
+        fd 0.01
+      ]
+    ]
+    if not busy? [
+      fd 0.01
+      right (random-float 2) - 1
+    ]
   ]
   ask queens [
 
@@ -99,14 +121,66 @@ to go
   increment-model-time
 end
 
-to build-honey-pots
+to select-task
+  if not busy? [
+    eat-honey
+  ]
+  if not busy? [
+    build-honeypot
+  ]
+  if not busy? [
+    lay-egg
+  ]
+end
 
+to eat-honey
+  if food <= 0 [
+    set target min-one-of patches with [honeypot?] [distance myself]
+    set heading towards target
+    set busy? True
+    set task "eat-honey"
+  ]
+end
+
+to build-honeypot
+  if (honey / count patches with [honeypot?]) > 5 [
+    if (count patches with [honeypot?] in-radius observable-range) > 0 [
+      let target-pot one-of patches with [honeypot?] in-radius observable-range
+      set target one-of patches with [distance target-pot <= honeypot-max-dist] in-radius observable-range
+      set heading towards target
+      set busy? True
+      set task "build-honeypot"
+    ]
+  ]
+end
+
+to lay-egg
+  if is-queen? self and ovi-wait-time <= 0 [
+    ;lay egg
+    set busy? True
+    set task "lay-egg"
+  ]
+end
+
+to finish-task
+  if task = "eat-honey" [
+    set honey honey - 1
+    set food food + 1
+  ]
+  if task = "build-honeypot" [
+    ask patch-here [
+      set honeypot? True
+      set pcolor yellow
+    ]
+  ]
+  set busy? False
 end
 
 to increment-model-time
   set days days + 0.01
   ask turtles [ set age age + 0.01]
   ask (turtle-set queens workers) [ set food food - (digest-rate / 100)]
+  ask queens [set ovi-wait-time ovi-wait-time - 0.01]
   tick
 end
 @#$#@#$#@
@@ -138,10 +212,10 @@ ticks
 30.0
 
 BUTTON
-574
-20
-637
-53
+672
+25
+735
+58
 NIL
 setup
 NIL
@@ -155,10 +229,10 @@ NIL
 1
 
 BUTTON
-501
-19
-564
-52
+669
+64
+732
+97
 NIL
 go
 T
@@ -259,6 +333,36 @@ digest-rate
 0.1
 1
 NIL
+HORIZONTAL
+
+SLIDER
+6
+225
+300
+258
+honeypot-max-dist
+honeypot-max-dist
+0
+10
+3.0
+1
+1
+patches
+HORIZONTAL
+
+SLIDER
+6
+261
+334
+294
+oviposit-time
+oviposit-time
+0
+0.1
+0.04
+0.01
+1
+days
 HORIZONTAL
 
 @#$#@#$#@
