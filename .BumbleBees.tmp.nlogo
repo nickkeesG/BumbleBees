@@ -16,6 +16,7 @@ turtles-own [
   target
   busy?
   task
+  in-flight?
 ]
 
 queens-own [
@@ -44,12 +45,14 @@ to queen.config
   set food 1
   set busy? False
   set ovi-wait-time 0
+  set in-flight? False
 end
 
 to worker.config
   set dom worker-dom-init
   set color orange
   set age 0
+  set in-flight? False
 end
 
 to egg.config
@@ -102,12 +105,16 @@ to go
         finish-task
       ]
       [
-        fd 0.01
+        ifelse in-flight? [
+          fd 1
+        ]
+        [
+          fd 0.1
+        ]
       ]
     ]
     if not busy? [
-      fd 0.01
-      right (random-float 2) - 1
+
     ]
   ]
   ask queens [
@@ -131,6 +138,9 @@ to select-task
     build-honeypot
   ]
   if not busy? [
+    forage
+  ]
+  if not busy? [
     lay-egg
   ]
 end
@@ -145,12 +155,22 @@ to eat-honey
 end
 
 to build-honeypot
-  if (honey / count patches with [honeypot?]) > 5 [
+  if (honey / count patches with [honeypot?]) > 10 [
     let target-pot one-of patches with [honeypot?]
     set target one-of patches with [distance target-pot <= honeypot-max-dist]
     set heading towards target
     set busy? True
     set task "build-honeypot"
+  ]
+end
+
+to forage
+  if (honey / count patches with [honeypot?] < 5) [
+    set target one-of patches with [region = "outside"]
+    set heading towards target
+    set busy? True
+    set in-flight? True
+    set task "forage"
   ]
 end
 
@@ -177,12 +197,24 @@ to finish-task
   if task = "eat-honey" [
     set honey honey - 1
     set food food + 1
+    set busy? False
   ]
   if task = "build-honeypot" [
     ask patch-here [
       set honeypot? True
       set pcolor yellow
     ]
+    set busy? False
+  ]
+  if task = "return" [
+    set honey honey + forage-load
+    set in-flight? False
+    set busy? False
+  ]
+  if task = "forage" [
+    set task "return"
+    set target one-of patches with [honeypot?]
+    set heading towards target
   ]
   if task = "lay-egg" [
     ask patch-here [set egg-here? True]
@@ -190,8 +222,8 @@ to finish-task
       egg.config
     ]
     set ovi-wait-time oviposit-time
+    set busy? False
   ]
-  set busy? False
 end
 
 to increment-model-time
@@ -228,17 +260,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-MONITOR
-0
-0
-0
-0
-NIL
-NIL
-17
-1
-11
 
 BUTTON
 672
@@ -403,7 +424,7 @@ max-dist-egg-egg
 max-dist-egg-egg
 0
 10
-3.0
+5.0
 1
 1
 patches
@@ -418,11 +439,48 @@ max-dist-honey-egg
 max-dist-honey-egg
 0
 10
-4.0
+5.0
 1
 1
 patches
 HORIZONTAL
+
+MONITOR
+669
+119
+726
+164
+days
+days
+0
+1
+11
+
+SLIDER
+8
+369
+180
+402
+forage-load
+forage-load
+0
+10
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+669
+172
+726
+217
+honey
+honey
+1
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
