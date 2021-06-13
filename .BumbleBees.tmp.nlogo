@@ -6,6 +6,7 @@ globals [
 patches-own [
   region
   honeypot?
+  egg-here?
 ]
 
 turtles-own [
@@ -70,6 +71,7 @@ end
 
 to setup-patch
   set honeypot? False
+  set egg-here? False
 
   let distFromCenter sqrt (pxcor * pxcor + pycor * pycor)
   if distFromCenter < 14 [
@@ -144,19 +146,30 @@ end
 
 to build-honeypot
   if (honey / count patches with [honeypot?]) > 5 [
-    if (count patches with [honeypot?] in-radius observable-range) > 0 [
-      let target-pot one-of patches with [honeypot?] in-radius observable-range
-      set target one-of patches with [distance target-pot <= honeypot-max-dist] in-radius observable-range
-      set heading towards target
-      set busy? True
-      set task "build-honeypot"
-    ]
+    let target-pot one-of patches with [honeypot?]
+    set target one-of patches with [distance target-pot <= honeypot-max-dist]
+    set heading towards target
+    set busy? True
+    set task "build-honeypot"
   ]
 end
 
 to lay-egg
   if is-queen? self and ovi-wait-time <= 0 [
-    ;
+    let target-egg patch 0 0
+    if count patches with [egg-here?] > 0 [
+      set target-egg one-of patches with [egg-here?]
+    ]
+
+    set target one-of (patches with [distance target-egg <= max-dist-egg-egg and
+      distance (min-one-of patches with [honeypot?] [distance self]) <= max-dist-honey-egg
+      and not honeypot? and not egg-here?])
+
+    if not (target = NOBODY) [
+      set heading towards target
+      set busy? True
+      set task "lay-egg"
+    ]
   ]
 end
 
@@ -170,6 +183,13 @@ to finish-task
       set honeypot? True
       set pcolor yellow
     ]
+  ]
+  if task = "lay-egg" [
+    ask patch-here [set egg-here? True]
+    hatch-eggs 1 [
+      egg.config
+    ]
+    set ovi-wait-time oviposit-time
   ]
   set busy? False
 end
@@ -208,6 +228,17 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+MONITOR
+0
+0
+0
+0
+NIL
+NIL
+17
+1
+11
 
 BUTTON
 672
@@ -361,6 +392,36 @@ oviposit-time
 0.01
 1
 days
+HORIZONTAL
+
+SLIDER
+8
+333
+243
+366
+max-dist-egg-egg
+max-dist-egg-egg
+0
+10
+3.0
+1
+1
+patches
+HORIZONTAL
+
+SLIDER
+8
+298
+293
+331
+max-dist-honey-egg
+max-dist-honey-egg
+0
+10
+4.0
+1
+1
+patches
 HORIZONTAL
 
 @#$#@#$#@
