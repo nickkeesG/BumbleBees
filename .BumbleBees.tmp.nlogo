@@ -7,6 +7,7 @@ patches-own [
   region
   honeypot?
   egg-here?
+  dev-here?
 ]
 
 turtles-own [
@@ -17,19 +18,14 @@ turtles-own [
   busy?
   task
   in-flight?
-]
-
-queens-own [
+  dev-time
   ovi-wait-time
-]
-
-eggs-own [
-  hatch-time
+  flowers-visited
 ]
 
 breed [queens queen]
 breed [newQueens newQueen]
-breed [pupas pupa]
+breed [pupae pupa]
 breed [workers worker]
 breed [drones drone]
 breed [larvae larva]
@@ -46,6 +42,7 @@ to queen.config
   set busy? False
   set ovi-wait-time 0
   set in-flight? False
+  set size 2
 end
 
 to worker.config
@@ -53,13 +50,29 @@ to worker.config
   set color orange
   set age 0
   set in-flight? False
+  set size 1.5
 end
 
 to egg.config
-  set hatch-time random-normal egg-hatch-time-mean egg-hatch-time-std
+  set dev-time random-normal egg-hatch-time-mean egg-hatch-time-std
   set age 0
-  set color grey
+  set color black
   set shape "circle"
+  set size 0.5
+end
+
+to larva.config
+  set dev-time random-normal larva-dev-time-mean larva-dev-time-std
+  set age 0
+  set color blue
+  set shape "circle"
+end
+
+to pupa.config
+  set dev-time random-normal pupa-dev-time-mean pupa-dev-time-std
+  set age 0
+  set color orange
+  set shape "he"
 end
 
 ;;SETUP METHODS
@@ -75,6 +88,7 @@ end
 to setup-patch
   set honeypot? False
   set egg-here? False
+  set dev-here? False
 
   let distFromCenter sqrt (pxcor * pxcor + pycor * pycor)
   if distFromCenter < 14 [
@@ -109,12 +123,9 @@ to go
           fd 1
         ]
         [
-          fd 0.1
+          fd 0.2
         ]
       ]
-    ]
-    if not busy? [
-
     ]
   ]
   ask queens [
@@ -124,7 +135,27 @@ to go
 
   ]
   ask eggs [
-
+    if age >= dev-time [
+      ask patch-here [
+        set egg-here? False
+        set dev-here? True
+      ]
+      set breed larvae
+      larva.config
+    ]
+  ]
+  ask larvae [
+    if age >= dev-time [
+      set breed pupae
+      pupa.config
+    ]
+  ]
+  ask pupae [
+    if age >= dev-time [
+      ask patch-here [set dev-here? False]
+      set breed workers
+      worker.config
+    ]
   ]
 
   increment-model-time
@@ -143,6 +174,12 @@ to select-task
   if not busy? [
     lay-egg
   ]
+  if not busy? [
+    set task "no-task"
+    set target one-of patches with [not (region = "outside") and (distance myself < 3)]
+    set heading towards target
+    set busy? True
+  ]
 end
 
 to eat-honey
@@ -155,22 +192,30 @@ to eat-honey
 end
 
 to build-honeypot
-  if (honey / count patches with [honeypot?]) > 10 [
-    let target-pot one-of patches with [honeypot?]
-    set target one-of patches with [distance target-pot <= honeypot-max-dist]
-    set heading towards target
-    set busy? True
-    set task "build-honeypot"
+  if count turtles with [task = "build-honeypot"] = 0 [
+    if (get-expected-honey / count patches with [honeypot?]) > 10 [
+      let target-pot one-of patches with [honeypot?]
+      set target one-of patches with [distance target-pot <= honeypot-max-dist]
+      set heading towards target
+      set busy? True
+      set task "build-honeypot"
+    ]
   ]
 end
 
+to-report get-expected-honey
+  report (honey + (forage-load * (count (turtles-on patches with [not (region = "outside")])
+    with [task = "forage" or task = "return"])))
+end
+
 to forage
-  if (honey / count patches with [honeypot?] < 5) [
+  if (get-expected-honey / count patches with [honeypot?]) < 5 [
     set target one-of patches with [region = "outside"]
     set heading towards target
     set busy? True
     set in-flight? True
     set task "forage"
+    set flowers-visited 0
   ]
 end
 
@@ -183,7 +228,7 @@ to lay-egg
 
     set target one-of (patches with [distance target-egg <= max-dist-egg-egg and
       distance (min-one-of patches with [honeypot?] [distance self]) <= max-dist-honey-egg
-      and not honeypot? and not egg-here?])
+      and not honeypot? and not egg-here? and not dev-here?])
 
     if not (target = NOBODY) [
       set heading towards target
@@ -212,9 +257,16 @@ to finish-task
     set busy? False
   ]
   if task = "forage" [
-    set task "return"
-    set target one-of patches with [honeypot?]
-    set heading towards target
+    ifelse flowers-visited = 10 [
+      set task "return"
+      set target one-of patches with [honeypot?]
+      set heading towards target
+    ]
+    [
+      set target one-of patches with [region = "outside" and (distance myself < 10)]
+      set heading towards target
+      set flowers-visited flowers-visited + 1
+    ]
   ]
   if task = "lay-egg" [
     ask patch-here [set egg-here? True]
@@ -222,6 +274,9 @@ to finish-task
       egg.config
     ]
     set ovi-wait-time oviposit-time
+    set busy? False
+  ]
+  if task = "no-task" [
     set busy? False
   ]
 end
@@ -298,7 +353,7 @@ NIL
 SLIDER
 6
 11
-178
+230
 44
 queen-dom-init
 queen-dom-init
@@ -313,7 +368,7 @@ HORIZONTAL
 SLIDER
 7
 45
-179
+230
 78
 worker-dom-init
 worker-dom-init
@@ -328,7 +383,7 @@ HORIZONTAL
 SLIDER
 7
 80
-245
+230
 113
 observable-range
 observable-range
@@ -343,7 +398,7 @@ HORIZONTAL
 SLIDER
 6
 115
-260
+229
 148
 egg-hatch-time-mean
 egg-hatch-time-mean
@@ -358,7 +413,7 @@ HORIZONTAL
 SLIDER
 6
 152
-233
+228
 185
 egg-hatch-time-std
 egg-hatch-time-std
@@ -373,7 +428,7 @@ HORIZONTAL
 SLIDER
 6
 188
-178
+224
 221
 digest-rate
 digest-rate
@@ -388,13 +443,13 @@ HORIZONTAL
 SLIDER
 6
 225
-300
+226
 258
 honeypot-max-dist
 honeypot-max-dist
 0
 10
-3.0
+5.0
 1
 1
 patches
@@ -403,7 +458,7 @@ HORIZONTAL
 SLIDER
 6
 261
-334
+227
 294
 oviposit-time
 oviposit-time
@@ -418,13 +473,13 @@ HORIZONTAL
 SLIDER
 8
 333
-243
+229
 366
 max-dist-egg-egg
 max-dist-egg-egg
 0
 10
-5.0
+3.0
 1
 1
 patches
@@ -433,13 +488,13 @@ HORIZONTAL
 SLIDER
 8
 298
-293
+228
 331
 max-dist-honey-egg
 max-dist-honey-egg
 0
 10
-5.0
+7.0
 1
 1
 patches
@@ -459,7 +514,7 @@ days
 SLIDER
 8
 369
-180
+229
 402
 forage-load
 forage-load
@@ -481,6 +536,66 @@ honey
 1
 1
 11
+
+SLIDER
+10
+404
+230
+437
+larva-dev-time-mean
+larva-dev-time-mean
+0
+10
+7.0
+1
+1
+days
+HORIZONTAL
+
+SLIDER
+11
+438
+230
+471
+larva-dev-time-std
+larva-dev-time-std
+0
+10
+2.0
+1
+1
+days
+HORIZONTAL
+
+SLIDER
+232
+13
+465
+46
+pupa-dev-time-mean
+pupa-dev-time-mean
+0
+10
+10.0
+1
+1
+days
+HORIZONTAL
+
+SLIDER
+232
+49
+457
+82
+pupa-dev-time-std
+pupa-dev-time-std
+0
+10
+2.0
+1
+1
+days
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
