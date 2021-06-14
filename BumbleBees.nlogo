@@ -21,6 +21,8 @@ turtles-own [
   dev-time
   ovi-wait-time
   flowers-visited
+  x-coords
+  y-coords
 ]
 
 breed [queens queen]
@@ -43,6 +45,8 @@ to queen.config
   set ovi-wait-time 0
   set in-flight? False
   set size 2
+  set x-coords []
+  set y-coords []
 end
 
 to worker.config
@@ -51,6 +55,8 @@ to worker.config
   set age 0
   set in-flight? False
   set size 1.5
+  set x-coords []
+  set y-coords []
 end
 
 to egg.config
@@ -74,6 +80,12 @@ to pupa.config
   set color green
   set shape "triangle"
   set size 1
+end
+
+to drone.config
+  ; For when we need it
+  set x-coords []
+  set y-coords []
 end
 
 ;;SETUP METHODS
@@ -127,6 +139,13 @@ to go
           fd 0.2
         ]
       ]
+    ]
+  ]
+  ask (turtle-set queens newQueens workers drones) [
+    if [region] of patch-at xcor ycor != "outside" [
+      ; save x and y coords for calculation of SD
+      set x-coords fput xcor x-coords
+      set y-coords fput ycor y-coords
     ]
   ]
   ask eggs [
@@ -334,6 +353,49 @@ to increment-model-time
     ]
   ]
   tick
+end
+
+; Reporting and statistics functions
+
+to-report zone-sig [ _turtle ] ;; turtle method
+  ifelse length x-coords > 1 [
+    let x-sd standard-deviation x-coords
+    let y-sd standard-deviation y-coords
+    report x-sd * y-sd
+  ]
+  [
+    report 0
+  ]
+end
+
+to-report zone-sigs [ _breed ] ;; agent set method
+  let relevant-agents (turtle-set _breed) with [ length x-coords > 1 ]
+  ifelse count relevant-agents > 0
+  [
+    report mean [ zone-sig self ] of relevant-agents
+  ]
+  [
+    report 0
+  ]
+
+end
+
+to-report centroid [ _turtle ] ;; turtle method
+  if length x-coords > 0 [
+    let x-centroid sum x-coords / length x-coords
+    let y-centroid sum y-coords / length y-coords
+  ]
+end
+
+to-report calculate-centroids [ _breed ] ;; agent set method
+  let relevant-agents (turtle-set _breed) with [ length x-coords > 1 ]
+  if count relevant-agents > 0 [
+    let x-centroid mean ( map [ x -> sum x / length x ] [ x-coords] of _breed  )
+    let y-centroid mean ( map [ y -> sum y / length y ] [ y-coords] of _breed  )
+    report list x-centroid y-centroid
+  ]
+  ; can i just not report anything if i don't want to?
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -703,6 +765,65 @@ dom-step
 1
 NIL
 HORIZONTAL
+
+PLOT
+9
+479
+406
+705
+Spatial zone signature of different breeds
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Workers" 1.0 0 -4079321 true "" "plot zone-sigs workers"
+"Queen" 1.0 0 -5825686 true "" "plot zone-sigs queens"
+
+PLOT
+409
+479
+789
+705
+Bumblebee centrality vs dominance
+Distance to centre
+Dominance
+0.0
+10.0
+0.0
+2.0
+true
+false
+"" ""
+PENS
+"default" 1.0 2 -16777216 true "" "ask (turtle-set workers) [\n  if (length x-coords > 1) and (ticks mod 100 = 0) [\n    plotxy (distancexy 0 0) dom\n  ]\n]"
+
+PLOT
+792
+479
+1193
+704
+Spatial zone signatures per dominance level
+Time
+Spatial zone signature
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Low" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom < (dom-avg - 2 * dom-sd) ])\n]"
+"Med-Low" 1.0 0 -955883 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 2 * dom-sd ) and dom < (dom-avg - 1 * dom-sd) ])\n]"
+"Med" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ])\n]"
+"Med-High" 1.0 0 -10899396 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 1 * dom-sd ) and dom < (dom-avg + 2 * dom-sd) ])\n]"
+"High" 1.0 0 -8862290 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 2 * dom-sd ) ])\n]"
 
 @#$#@#$#@
 ## WHAT IS IT?
