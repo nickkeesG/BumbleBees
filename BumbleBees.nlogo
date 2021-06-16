@@ -132,16 +132,11 @@ to go
         finish-task
       ]
       [
-        ifelse any? other (turtle-set queens workers) in-cone 1 20 [
-          ;;do nothing (stuck in front of another bee)
+        ifelse in-flight? [
+          fd 1
         ]
         [
-          ifelse in-flight? [
-            fd 1
-          ]
-          [
-            fd 0.2
-          ]
+          fd 0.2
         ]
       ]
     ]
@@ -275,8 +270,6 @@ to lay-egg
 end
 
 to dominate
-
-
   let nearest-bee min-one-of other (turtle-set queens workers) with [not in-flight?] [distance myself]
   if (not (nearest-bee = NOBODY)) and (distance nearest-bee <= dominance-radius) [
     let p dom / (dom + [dom] of nearest-bee)
