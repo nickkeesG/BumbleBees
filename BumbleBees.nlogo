@@ -132,11 +132,16 @@ to go
         finish-task
       ]
       [
-        ifelse in-flight? [
-          fd 1
+        ifelse any? other (turtle-set queens workers) in-cone 1 20 [
+          ;;do nothing (stuck in front of another bee)
         ]
         [
-          fd 0.2
+          ifelse in-flight? [
+            fd 1
+          ]
+          [
+            fd 0.2
+          ]
         ]
       ]
     ]
