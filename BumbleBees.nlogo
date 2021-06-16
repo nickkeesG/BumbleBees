@@ -275,9 +275,16 @@ to lay-egg
 end
 
 to dominate
+
+
   let nearest-bee min-one-of other (turtle-set queens workers) with [not in-flight?] [distance myself]
   if (not (nearest-bee = NOBODY)) and (distance nearest-bee <= dominance-radius) [
     let p dom / (dom + [dom] of nearest-bee)
+
+    if age-dominance [
+      set p age / (age + [age] of nearest-bee)
+    ]
+
     let k 0
     if (random-float 1 < p) [
       set k 1
@@ -829,6 +836,17 @@ PENS
 "Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ])\n]"
 "Med-High [+1σ, +2σ)" 1.0 0 -10899396 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 1 * dom-sd ) and dom < (dom-avg + 2 * dom-sd) ])\n]"
 "High (> +2σ)" 1.0 0 -8862290 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 2 * dom-sd ) ])\n]"
+
+SWITCH
+488
+13
+657
+46
+age-dominance
+age-dominance
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
