@@ -23,6 +23,9 @@ turtles-own [
   flowers-visited
   x-coords
   y-coords
+  time-center
+  time-periphery
+  time-outside
 ]
 
 breed [queens queen]
@@ -47,6 +50,9 @@ to queen.config
   set size 2
   set x-coords []
   set y-coords []
+  set time-center 0
+  set time-periphery 0
+  set time-outside 0
 end
 
 to worker.config
@@ -57,6 +63,9 @@ to worker.config
   set size 1.5
   set x-coords []
   set y-coords []
+  set time-center 0
+  set time-periphery 0
+  set time-outside 0
 end
 
 to egg.config
@@ -86,6 +95,9 @@ to drone.config
   ; For when we need it
   set x-coords []
   set y-coords []
+  set time-center 0
+  set time-periphery 0
+  set time-outside 0
 end
 
 ;;SETUP METHODS
@@ -140,6 +152,10 @@ to go
         ]
       ]
     ]
+    ; record time spent in a region
+    if [region] of patch-here = "center" [ set time-center time-center + 1]
+    if [region] of patch-here = "periphery" [ set time-periphery time-periphery + 1]
+    if [region] of patch-here = "outside" [ set time-outside time-outside + 1]
   ]
   ask (turtle-set queens newQueens workers drones) [
     if [region] of patch-at xcor ycor != "outside" [
@@ -404,10 +420,10 @@ to-report calculate-centroids [ _breed ] ;; agent set method
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-745
-23
-1192
-471
+746
+10
+1193
+458
 -1
 -1
 6.754
@@ -431,10 +447,10 @@ ticks
 30.0
 
 BUTTON
-672
-25
-735
-58
+673
+10
+736
+43
 NIL
 setup
 NIL
@@ -448,10 +464,10 @@ NIL
 1
 
 BUTTON
-669
-64
-732
-97
+673
+45
+736
+78
 NIL
 go
 T
@@ -465,10 +481,10 @@ NIL
 1
 
 SLIDER
-6
-11
-230
-44
+8
+10
+232
+43
 queen-dom-init
 queen-dom-init
 0
@@ -480,9 +496,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-7
+8
 45
-230
+232
 78
 worker-dom-init
 worker-dom-init
@@ -495,9 +511,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-7
+8
 80
-247
+232
 113
 dominance-radius
 dominance-radius
@@ -510,9 +526,9 @@ patches
 HORIZONTAL
 
 SLIDER
-6
+8
 115
-229
+232
 148
 egg-hatch-time-mean
 egg-hatch-time-mean
@@ -525,25 +541,25 @@ days
 HORIZONTAL
 
 SLIDER
-6
-152
-228
-185
+8
+150
+232
+183
 egg-hatch-time-std
 egg-hatch-time-std
 0
 5
-1.0
+1.4
 0.1
 1
 days
 HORIZONTAL
 
 SLIDER
-6
-188
-224
-221
+8
+185
+232
+218
 digest-rate
 digest-rate
 0
@@ -555,10 +571,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-6
-225
-226
-258
+8
+220
+232
+253
 honeypot-max-dist
 honeypot-max-dist
 0
@@ -570,10 +586,10 @@ patches
 HORIZONTAL
 
 SLIDER
-6
-261
-227
-294
+8
+255
+232
+288
 oviposit-time
 oviposit-time
 0
@@ -586,9 +602,9 @@ HORIZONTAL
 
 SLIDER
 8
-333
-229
-366
+325
+232
+358
 max-dist-egg-egg
 max-dist-egg-egg
 0
@@ -601,9 +617,9 @@ HORIZONTAL
 
 SLIDER
 8
-298
-228
-331
+290
+232
+323
 max-dist-honey-egg
 max-dist-honey-egg
 0
@@ -615,10 +631,10 @@ patches
 HORIZONTAL
 
 MONITOR
-669
-119
-726
-164
+673
+88
+736
+133
 days
 days
 0
@@ -627,9 +643,9 @@ days
 
 SLIDER
 8
-369
-229
-402
+360
+232
+393
 forage-load
 forage-load
 0
@@ -641,10 +657,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-669
-172
-726
-217
+673
+135
+736
+180
 honey
 honey
 1
@@ -652,10 +668,10 @@ honey
 11
 
 SLIDER
-10
-404
-230
-437
+8
+395
+232
+428
 larva-dev-time-mean
 larva-dev-time-mean
 0
@@ -667,10 +683,10 @@ days
 HORIZONTAL
 
 SLIDER
-11
-438
-230
-471
+8
+430
+232
+463
 larva-dev-time-std
 larva-dev-time-std
 0
@@ -682,10 +698,10 @@ days
 HORIZONTAL
 
 SLIDER
-232
-13
-465
-46
+242
+10
+466
+43
 pupa-dev-time-mean
 pupa-dev-time-mean
 0
@@ -697,10 +713,10 @@ days
 HORIZONTAL
 
 SLIDER
-232
-49
-457
-82
+242
+45
+466
+78
 pupa-dev-time-std
 pupa-dev-time-std
 0
@@ -712,10 +728,10 @@ days
 HORIZONTAL
 
 SLIDER
-232
-83
-424
-116
+242
+80
+466
+113
 max-honey-per-pot
 max-honey-per-pot
 0
@@ -727,10 +743,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-232
-118
-420
-151
+242
+115
+466
+148
 min-honey-per-pot
 min-honey-per-pot
 0
@@ -742,10 +758,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-232
-153
-420
-186
+242
+150
+466
+183
 flowers-per-forage
 flowers-per-forage
 0
@@ -757,10 +773,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-232
-190
-404
-223
+242
+185
+466
+218
 dom-step
 dom-step
 0
@@ -772,10 +788,10 @@ NIL
 HORIZONTAL
 
 PLOT
-9
-479
-406
-705
+8
+473
+405
+699
 Spatial zone signature of different breeds
 NIL
 NIL
@@ -791,10 +807,10 @@ PENS
 "Queen" 1.0 0 -5825686 true "" "plot zone-sigs queens"
 
 PLOT
-409
-479
-789
-705
+806
+473
+1203
+699
 Bumblebee centrality vs dominance
 Distance to centre
 Dominance
@@ -809,10 +825,10 @@ PENS
 "default" 1.0 2 -16777216 true "" "ask (turtle-set workers) [\n  if (length x-coords > 1) and (ticks mod 100 = 0) [\n    plotxy (distancexy 0 0) dom\n  ]\n]"
 
 PLOT
-792
-479
-1193
-704
+407
+473
+804
+699
 Spatial zone signatures per dominance level
 Time
 Spatial zone signature
@@ -824,22 +840,90 @@ true
 true
 "" ""
 PENS
-"Low (< -2σ)" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom < (dom-avg - 2 * dom-sd) ])\n]"
-"Med-Low [-2σ, -1σ)" 1.0 0 -955883 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 2 * dom-sd ) and dom < (dom-avg - 1 * dom-sd) ])\n]"
+"Low (< -1σ)" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom < (dom-avg - 1 * dom-sd) ])\n]"
 "Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ])\n]"
-"Med-High [+1σ, +2σ)" 1.0 0 -10899396 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 1 * dom-sd ) and dom < (dom-avg + 2 * dom-sd) ])\n]"
-"High (> +2σ)" 1.0 0 -8862290 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 2 * dom-sd ) ])\n]"
+"High (> +1σ)" 1.0 0 -8862290 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\n]"
 
 SWITCH
-488
-13
-657
-46
+476
+10
+619
+43
 age-dominance
 age-dominance
 1
 1
 -1000
+
+TEXTBOX
+240
+437
+717
+465
+The \"Spatial zone signature\" is a measure of the size of the area a bee moves around in. It is calculated by multiplying the standard deviations of the x and y coordinates.
+11
+0.0
+1
+
+PLOT
+8
+701
+405
+927
+Time spent in center per dominance level
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-center] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-center] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-center] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+
+PLOT
+407
+701
+804
+927
+Time spent in periphery per dominance level
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-periphery] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-periphery] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-periphery] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+
+PLOT
+806
+701
+1203
+927
+Time spent outside per dominance level
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-outside] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-outside] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-outside] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
 
 @#$#@#$#@
 ## WHAT IS IT?
