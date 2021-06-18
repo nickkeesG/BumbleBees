@@ -418,6 +418,52 @@ to-report calculate-centroids [ _breed ] ;; agent set method
   ; can i just not report anything if i don't want to?
 
 end
+
+to check-var-dominance-interaction [ var min-sd max-sd ]
+  ;; plotting function
+  ;; negative values represent infinity
+  ;; var: represents which time spent should be plotted, "c" = center, "p" = periphery, "o" = outside
+  ;; min-sd and max-sd are the sd offsets from the average, e.g. check-var-dominance-interaction "c" 0.5 0.5 will check [-0.5sd, 0.5sd)
+  ;; setting either to a negative value will mean that that boundary is interpreted as infinity
+
+  ifelse count workers > 1
+  [
+    let dom-sd standard-deviation [ dom ] of workers
+    let dom-avg mean [ dom ] of workers
+
+    ; find the relevant workers for the plot
+    let rel-workers no-turtles
+
+    if min-sd >= 0 and max-sd < 0 [
+      ; everything below a given sd
+      set rel-workers (workers with [ dom < (dom-avg - min-sd * dom-sd) ])
+    ]
+    if min-sd < 0 and max-sd >= 0 [
+      ; everything above a given sd
+      set rel-workers (workers with [ dom >= (dom-avg + max-sd * dom-sd) ])
+    ]
+    if min-sd >= 0 and max-sd >= 0 [
+      ; everything inbetween some sds
+      set rel-workers (workers with [ dom > (dom-avg - min-sd * dom-sd) and dom <= (dom-avg + max-sd * dom-sd) ])
+    ]
+
+    ifelse count rel-workers > 0
+    [
+      let relative-var (ifelse-value
+        var = "c" [ [ time-center / (age * 100) ] of rel-workers ]
+        var = "p" [ [ time-periphery / (age * 100) ] of rel-workers ]
+        var = "o" [ [ time-outside / (age * 100) ] of rel-workers ]
+                  [ [ time-center / (age * 100) ] of rel-workers ])
+      plot mean relative-var
+    ]
+    [
+      plot 0
+    ]
+  ]
+  [
+    plot 0
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 746
@@ -881,9 +927,9 @@ true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean ([time-center / (age * 100)] of low-workers)\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-center / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-center / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"c\" -1 0.5"
+"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"c\" 0.5 0.5"
+"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"c\" 0.5 -1"
 
 PLOT
 407
@@ -901,9 +947,9 @@ true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-periphery / (age * 100)] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-periphery / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-periphery / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"p\" -1 0.5"
+"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"p\" 0.5 0.5"
+"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"p\" 0.5 -1"
 
 PLOT
 806
@@ -921,9 +967,9 @@ true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-outside / (age * 100)] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-outside / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-outside / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"o\" -1 0.5"
+"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"o\" 0.5 0.5"
+"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"o\" 0.5 -1"
 
 @#$#@#$#@
 ## WHAT IS IT?
