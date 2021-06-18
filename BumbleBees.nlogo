@@ -66,6 +66,7 @@ to worker.config
   set time-center 0
   set time-periphery 0
   set time-outside 0
+  set task "no-task"
 end
 
 to egg.config
@@ -593,7 +594,7 @@ SLIDER
 oviposit-time
 oviposit-time
 0
-0.1
+1
 0.04
 0.01
 1
