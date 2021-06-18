@@ -840,9 +840,9 @@ true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom < (dom-avg - 1 * dom-sd) ])\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ])\n]"
-"High (> +1σ)" 1.0 0 -8862290 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nplot zone-sigs (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\n]"
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ]) \nifelse count low-workers > 0\n[ plot zone-sigs low-workers ]\n[ plot 0 ]\n]\n[ plot 0]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ]) \nifelse count med-workers > 0\n[ plot zone-sigs med-workers ]\n[ plot 0 ]\n]\n[ plot 0 ]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\nifelse count high-workers > 0 \n[ plot zone-sigs high-workers ]\n[ plot 0 ]\n]\n[ plot 0 ]"
 
 SWITCH
 476
