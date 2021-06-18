@@ -259,7 +259,7 @@ end
 to flee [other-bee]
   set heading towards other-bee
   rt 180
-  set target one-of patches in-cone 5 20
+  set target one-of patches in-cone 5 20 with [distance myself > 2]
   set heading towards target
   set task "flee"
   set color violet
