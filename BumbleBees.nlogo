@@ -66,6 +66,7 @@ to worker.config
   set time-center 0
   set time-periphery 0
   set time-outside 0
+  set task "no-task"
 end
 
 to egg.config
