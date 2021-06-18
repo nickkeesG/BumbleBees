@@ -781,7 +781,7 @@ dom-step
 dom-step
 0
 1
-0.15
+0.51
 0.01
 1
 NIL
@@ -876,14 +876,14 @@ NIL
 0.0
 10.0
 0.0
-10.0
+0.01
 true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-center] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-center] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-center] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean ([time-center / (age * 100)] of low-workers)\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-center / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-center / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
 
 PLOT
 407
@@ -896,14 +896,14 @@ NIL
 0.0
 10.0
 0.0
-10.0
+0.01
 true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-periphery] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-periphery] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-periphery] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-periphery / (age * 100)] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-periphery / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-periphery / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
 
 PLOT
 806
@@ -916,14 +916,14 @@ NIL
 0.0
 10.0
 0.0
-10.0
+0.01
 true
 true
 "" ""
 PENS
-"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-outside] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
-"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-outside] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
-"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-outside] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"Low (< -1σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ])\nifelse count low-workers > 0\n[\n  plot mean [time-outside / (age * 100)] of low-workers\n]\n[\n  plot 0\n]\n]\n[\nplot 0\n]"
+"Med [-1σ, +1σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd) and dom < (dom-avg + 1 * dom-sd) ])\nifelse count med-workers > 0\n[\nplot mean [time-outside / (age * 100)] of med-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
+"High (> +1σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd) ])\nifelse count high-workers > 0\n[\nplot mean [time-outside / (age * 100)] of high-workers\n]\n[\nplot 0\n]\n]\n[\nplot 0\n]"
 
 @#$#@#$#@
 ## WHAT IS IT?
