@@ -27,6 +27,7 @@ turtles-own [
   time-periphery
   time-outside
   stress
+  sex
 ]
 
 breed [queens queen]
@@ -96,6 +97,10 @@ to pupa.config
 end
 
 to drone.config
+  set size 1.5
+  set color grey
+  set task "no-task"
+  set in-flight? False
   ; For when we need it
   set x-coords []
   set y-coords []
@@ -141,7 +146,7 @@ end
 
 ;;ALL OTHER METHODS
 to go
-  ask (turtle-set queens workers) [
+  ask (turtle-set queens workers drones) [
     select-task
     if busy? [
       ifelse patch-here = target [
@@ -187,8 +192,14 @@ to go
   ask pupae [
     if age >= dev-time [
       ask patch-here [set dev-here? False]
-      set breed workers
-      worker.config
+      if sex = "W" [
+        set breed workers
+        worker.config
+      ]
+      if sex = "D" [
+        set breed drones
+        drone.config
+      ]
     ]
   ]
 
@@ -196,27 +207,25 @@ to go
 end
 
 to select-task
-  if not busy? [
-    eat-honey
+  if is-queen? self or is-worker? self [
+    if not busy? [
+      eat-honey
+    ]
+    if not busy? [
+      build-honeypot
+    ]
+    if not busy? [
+      forage
+    ]
+    if not busy? [
+      lay-egg
+    ]
+    if not busy? [
+      dominate
+    ]
   ]
   if not busy? [
-    build-honeypot
-  ]
-  if not busy? [
-    forage
-  ]
-  if not busy? [
-    lay-egg
-  ]
-  if not busy? [
-    dominate
-  ]
-  if not busy? [
-    set task "no-task"
-    set target one-of patches with [not (region = "outside") and (distance myself < 4)]
-    if target = NOBODY [ set target min-one-of patches with [not (region = "outside")] [distance myself]]
-    set heading towards target
-    set busy? True
+    no-task
   ]
 end
 
@@ -319,6 +328,14 @@ to dominate
   ]
 end
 
+to no-task
+  set task "no-task"
+  set target one-of patches with [not (region = "outside") and (distance myself < 4)]
+  if target = NOBODY [ set target min-one-of patches with [not (region = "outside")] [distance myself]]
+  set heading towards target
+  set busy? True
+end
+
 to finish-task
   if task = "eat-honey" [
     let bite min list dom 1
@@ -353,9 +370,14 @@ to finish-task
     ]
   ]
   if task = "lay-egg" [
+    let egg-sex "W"
+    if (is-queen? self and stress > stress-fert-threshold) or (is-worker? self) [
+      set egg-sex "D"
+    ]
     ask patch-here [set egg-here? True]
     hatch-eggs 1 [
       egg.config
+      set sex egg-sex
     ]
     set ovi-wait-time oviposit-time
     set busy? False
@@ -469,11 +491,11 @@ to check-var-dominance-interaction [ var min-sd max-sd ]
       plot mean relative-var
     ]
     [
-      plot 0
+      ;;plot 0
     ]
   ]
   [
-    plot 0
+    ;;plot 0
   ]
 end
 @#$#@#$#@
@@ -527,7 +549,7 @@ BUTTON
 736
 78
 go
-if any? turtles [go]
+if any? turtles with [not (breed = drones)] [go]
 T
 1
 T
@@ -993,6 +1015,21 @@ stress-kill-threshold
 0
 20
 10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+244
+256
+466
+289
+stress-fert-threshold
+stress-fert-threshold
+0
+20
+5.0
 1
 1
 NIL
