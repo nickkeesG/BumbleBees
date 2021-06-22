@@ -26,6 +26,7 @@ turtles-own [
   time-center
   time-periphery
   time-outside
+  stress
 ]
 
 breed [queens queen]
@@ -53,6 +54,8 @@ to queen.config
   set time-center 0
   set time-periphery 0
   set time-outside 0
+  set stress 0
+
 end
 
 to worker.config
@@ -302,6 +305,11 @@ to dominate
     set dom max list (dom + ((k - p) * dom-step)) 0.1
     ask nearest-bee [ set dom max list (dom - ((k - p) * dom-step)) 0.1]
 
+    if ((is-queen? self) and (task = "lay-egg") and (target = patch-here))
+      [ ifelse (k = 1) [set stress stress + 1] [set stress stress + 2]]
+    if ((is-queen? nearest-bee) and ([(task = "lay-egg") and (target = patch-here)] of nearest-bee = True)) [ ifelse (k = 1)
+      [ask nearest-bee [set stress stress + 1]] [ ask nearest-bee [set stress stress + 2]]]
+
     ifelse k = 1 [
       ask nearest-bee [ flee myself ]
     ]
@@ -313,8 +321,10 @@ end
 
 to finish-task
   if task = "eat-honey" [
-    set honey honey - 1
-    set food food + 1
+    let bite min list dom 1
+    set honey honey - bite
+    set food food + bite
+
     set busy? False
   ]
   if task = "build-honeypot" [
@@ -374,6 +384,7 @@ to increment-model-time
       die
     ]
   ]
+  ask queens [ if stress > stress-kill-threshold [die] ]
   tick
 end
 
@@ -515,8 +526,8 @@ BUTTON
 45
 736
 78
-NIL
 go
+if any? turtles [go]
 T
 1
 T
@@ -971,6 +982,21 @@ PENS
 "Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"o\" -1 0.5"
 "Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"o\" 0.5 0.5"
 "High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"o\" 0.5 -1"
+
+SLIDER
+243
+220
+465
+253
+stress-kill-threshold
+stress-kill-threshold
+0
+20
+10.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
