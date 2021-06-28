@@ -241,7 +241,9 @@ to select-task
       lay-egg
     ]
     if not busy? [
-      dominate
+      if dominance-behavior? [
+        dominate
+      ]
     ]
   ]
   if not busy? [
@@ -292,7 +294,7 @@ end
 to flee [other-bee]
   set heading towards other-bee
   rt 180
-  set target one-of patches in-cone 10 20 with [distance myself > 7]
+  set target one-of patches in-cone 10 20 with [distance myself > 8]
   set heading towards target
   set task "flee"
   set color violet
@@ -527,7 +529,10 @@ to-report plot-dominance-groups [ var group-name fraction]
   if count workers >= 3
   [
     let agent-group workers
-    let sorted-workers sort-on [ dom ] workers
+    let sorted-workers sort-on [ who ] workers
+    if dominance-behavior? [
+      set sorted-workers sort-on [ dom ] workers
+    ]
     let med-idx floor (2 + (length sorted-workers * fraction))
 
     let lowset sublist sorted-workers 1 med-idx
@@ -1176,6 +1181,17 @@ PENS
 "Larvae" 1.0 0 -2674135 true "" "plotxy (ticks / 100) count larvae"
 "Pupae" 1.0 0 -955883 true "" "plotxy (ticks / 100) count pupae"
 "Drones" 1.0 0 -6459832 true "" "plotxy (ticks / 100) count drones"
+
+SWITCH
+477
+46
+662
+79
+dominance-behavior?
+dominance-behavior?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
