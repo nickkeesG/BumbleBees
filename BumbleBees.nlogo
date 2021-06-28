@@ -1,6 +1,16 @@
 globals [
   days
   honey
+
+  avg-low-c
+  avg-med-c
+  avg-high-c
+  avg-low-p
+  avg-med-p
+  avg-high-p
+  avg-low-o
+  avg-med-o
+  avg-high-o
 ]
 
 patches-own [
@@ -167,7 +177,7 @@ to go
     if [region] of patch-here = "outside" [ set time-outside time-outside + 1]
 
     ; update time spent in a region
-    let discount-factor 0.995
+    let discount-factor 0.999
     set discount-time-center (discount-time-center * discount-factor)
     set discount-time-periphery (discount-time-periphery * discount-factor)
     set discount-time-outside (discount-time-outside * discount-factor)
@@ -281,7 +291,7 @@ end
 to flee [other-bee]
   set heading towards other-bee
   rt 180
-  set target one-of patches in-cone 8 20 with [distance myself > 4]
+  set target one-of patches in-cone 10 20 with [distance myself > 7]
   set heading towards target
   set task "flee"
   set color violet
@@ -508,7 +518,7 @@ to check-var-dominance-interaction [ var min-sd max-sd ]
   ]
 end
 
-to plot-dominance-groups [ var group-name fraction]
+to-report plot-dominance-groups [ var group-name fraction]
   ;; plotting function
   ;; all agents are by default in group "medium" unless they fall in the top (or bottom) fraction of dominance
   ;; var is the variable being plotted
@@ -543,9 +553,68 @@ to plot-dominance-groups [ var group-name fraction]
         var = "p" [ [ discount-time-periphery ] of agent-group ]
         var = "o" [ [ discount-time-outside ] of agent-group ]
                   [ [ discount-time-center ] of agent-group ])
-    plotxy (ticks / 100) mean time-list
+    report mean time-list
   ]
+    report "no-plot"
+end
 
+to smooth-plot [ var group-name fraction]
+  let discount 0.98
+
+  let value plot-dominance-groups var group-name fraction
+  if not (value = "no-plot") [
+  if var = "c" [
+    if group-name = "low" [
+      set avg-low-c (avg-low-c * discount)
+      set avg-low-c avg-low-c + (value * (1 - discount))
+      plotxy (ticks / 100) avg-low-c
+    ]
+    if group-name = "med" [
+      set avg-med-c (avg-med-c * discount)
+      set avg-med-c avg-med-c + (value * (1 - discount))
+      plotxy (ticks / 100) avg-med-c
+    ]
+    if group-name = "high" [
+      set avg-high-c (avg-high-c * discount)
+      set avg-high-c avg-high-c + (value * (1 - discount))
+      plotxy (ticks / 100) avg-high-c
+    ]
+  ]
+  if var = "p" [
+    if group-name = "low" [
+      set avg-low-p (avg-low-p * discount)
+      set avg-low-p avg-low-p + (value * (1 - discount))
+      plotxy (ticks / 100) avg-low-p
+    ]
+    if group-name = "med" [
+      set avg-med-p (avg-med-p * discount)
+      set avg-med-p avg-med-p + (value * (1 - discount))
+      plotxy (ticks / 100) avg-med-p
+    ]
+    if group-name = "high" [
+      set avg-high-p (avg-high-p * discount)
+      set avg-high-p avg-high-p + (value * (1 - discount))
+      plotxy (ticks / 100) avg-high-p
+    ]
+  ]
+  if var = "o" [
+    if group-name = "low" [
+      set avg-low-o (avg-low-o * discount)
+      set avg-low-o avg-low-o + (value * (1 - discount))
+      plotxy (ticks / 100) avg-low-o
+    ]
+    if group-name = "med" [
+      set avg-med-o (avg-med-o * discount)
+      set avg-med-o avg-med-o + (value * (1 - discount))
+      plotxy (ticks / 100) avg-med-o
+    ]
+    if group-name = "high" [
+      set avg-high-o (avg-high-o * discount)
+      set avg-high-o avg-high-o + (value * (1 - discount))
+      plotxy (ticks / 100) avg-high-o
+    ]
+  ]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -1011,9 +1080,9 @@ true
 true
 "" ""
 PENS
-"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"c\" \"low\" 0.1"
-"Med" 1.0 0 -1184463 true "" "plot-dominance-groups \"c\" \"med\" 0.1"
-"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"c\" \"high\" 0.1"
+"Low" 1.0 0 -2674135 true "" "smooth-plot \"c\" \"low\" 0.25"
+"Med" 1.0 0 -1184463 true "" "smooth-plot \"c\" \"med\" 0.25\n"
+"High" 1.0 0 -10899396 true "" "smooth-plot \"c\" \"high\" 0.25"
 
 PLOT
 407
@@ -1026,14 +1095,14 @@ NIL
 0.0
 10.0
 0.0
-1.0
+0.1
 true
 true
 "" ""
 PENS
-"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"p\" \"low\" 0.1"
-"Med " 1.0 0 -1184463 true "" "plot-dominance-groups \"p\" \"med\" 0.1"
-"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"p\" \"high\" 0.1"
+"Low" 1.0 0 -2674135 true "" "smooth-plot \"p\" \"low\" 0.25"
+"Med " 1.0 0 -1184463 true "" "smooth-plot \"p\" \"med\" 0.25"
+"High" 1.0 0 -10899396 true "" "smooth-plot \"p\" \"high\" 0.25"
 
 PLOT
 806
@@ -1046,14 +1115,14 @@ NIL
 0.0
 10.0
 0.0
-1.0
+0.1
 true
 true
 "" ""
 PENS
-"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"o\" \"low\" 0.1"
-"Med" 1.0 0 -1184463 true "" "plot-dominance-groups \"o\" \"med\" 0.1"
-"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"o\" \"high\" 0.1"
+"Low" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"low\" 0.25"
+"Med" 1.0 0 -1184463 true "" "smooth-plot \"o\" \"med\" 0.25"
+"High" 1.0 0 -10899396 true "" "smooth-plot \"o\" \"high\" 0.25"
 
 SLIDER
 243
