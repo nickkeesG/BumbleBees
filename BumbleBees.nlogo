@@ -41,6 +41,7 @@ turtles-own [
   discount-time-outside
   stress
   sex
+  rand-id ;; a random id which does not relate to when a turtle is born
 ]
 
 breed [queens queen]
@@ -86,6 +87,7 @@ to worker.config
   set size 1.5
   set task "no-task"
   data.config
+  set rand-id random 10000
 end
 
 to egg.config
@@ -163,11 +165,12 @@ to go
         finish-task
       ]
       [
+        let speed-mod min list dom 1
         ifelse in-flight? [
-          fd 1
+          fd 1 * speed-mod
         ]
         [
-          fd 0.2
+          fd 0.2 * speed-mod
         ]
       ]
     ]
@@ -240,7 +243,9 @@ to select-task
       lay-egg
     ]
     if not busy? [
-      dominate
+      if dominance-behavior? [
+        dominate
+      ]
     ]
   ]
   if not busy? [
@@ -291,7 +296,7 @@ end
 to flee [other-bee]
   set heading towards other-bee
   rt 180
-  set target one-of patches in-cone 10 20 with [distance myself > 7]
+  set target one-of patches in-cone 10 20 with [distance myself > 8]
   set heading towards target
   set task "flee"
   set color violet
@@ -526,7 +531,10 @@ to-report plot-dominance-groups [ var group-name fraction]
   if count workers >= 3
   [
     let agent-group workers
-    let sorted-workers sort-on [ dom ] workers
+    let sorted-workers sort-on [ rand-id ] workers
+    if dominance-behavior? [
+      set sorted-workers sort-on [ dom ] workers
+    ]
     let med-idx floor (2 + (length sorted-workers * fraction))
 
     let lowset sublist sorted-workers 1 med-idx
@@ -1235,6 +1243,16 @@ PENS
 "Center" 1.0 0 -16777216 true "" "smooth-plot \"c\" \"high\" 0.25"
 "Periphery" 1.0 0 -7500403 true "" "smooth-plot \"p\" \"high\" 0.25"
 "Outside" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"high\" 0.25"
+SWITCH
+477
+46
+662
+79
+dominance-behavior?
+dominance-behavior?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
