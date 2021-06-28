@@ -41,6 +41,7 @@ turtles-own [
   discount-time-outside
   stress
   sex
+  rand-id ;; a random id which does not relate to when a turtle is born
 ]
 
 breed [queens queen]
@@ -86,6 +87,7 @@ to worker.config
   set size 1.5
   set task "no-task"
   data.config
+  set rand-id random 10000
 end
 
 to egg.config
@@ -529,7 +531,7 @@ to-report plot-dominance-groups [ var group-name fraction]
   if count workers >= 3
   [
     let agent-group workers
-    let sorted-workers sort-on [ who ] workers
+    let sorted-workers sort-on [ rand-id ] workers
     if dominance-behavior? [
       set sorted-workers sort-on [ dom ] workers
     ]
