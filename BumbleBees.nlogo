@@ -1154,6 +1154,28 @@ stress-fert-threshold
 NIL
 HORIZONTAL
 
+PLOT
+1205
+701
+1602
+927
+Nest composition and development
+Days
+Individuals
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Adults" 1.0 0 -16777216 true "" "plotxy (ticks / 100) count (turtle-set queens workers)"
+"Eggs" 1.0 0 -7500403 true "" "plotxy (ticks / 100) count eggs"
+"Larvae" 1.0 0 -2674135 true "" "plotxy (ticks / 100) count larvae"
+"Pupae" 1.0 0 -955883 true "" "plotxy (ticks / 100) count pupae"
+"Drones" 1.0 0 -6459832 true "" "plotxy (ticks / 100) count drones"
+
 @#$#@#$#@
 ## WHAT IS IT?
 
