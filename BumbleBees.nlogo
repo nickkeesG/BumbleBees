@@ -163,11 +163,12 @@ to go
         finish-task
       ]
       [
+        let speed-mod min list dom 1
         ifelse in-flight? [
-          fd 1
+          fd 1 * speed-mod
         ]
         [
-          fd 0.2
+          fd 0.2 * speed-mod
         ]
       ]
     ]
@@ -1133,7 +1134,7 @@ stress-kill-threshold
 stress-kill-threshold
 0
 20
-10.0
+15.0
 1
 1
 NIL
