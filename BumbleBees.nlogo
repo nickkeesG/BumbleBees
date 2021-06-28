@@ -488,7 +488,7 @@ to check-var-dominance-interaction [ var min-sd max-sd ]
         var = "p" [ [ time-periphery / (age * 100) ] of rel-workers ]
         var = "o" [ [ time-outside / (age * 100) ] of rel-workers ]
                   [ [ time-center / (age * 100) ] of rel-workers ])
-      plot mean relative-var
+      plotxy (ticks / 100) mean relative-var
     ]
     [
       ;;plot 0
@@ -873,7 +873,7 @@ PLOT
 405
 699
 Spatial zone signature of different breeds
-NIL
+Days
 NIL
 0.0
 10.0
@@ -883,9 +883,9 @@ true
 true
 "" ""
 PENS
-"Workers" 1.0 0 -4079321 true "" "plot zone-sigs workers"
-"Queen" 1.0 0 -5825686 true "" "plot zone-sigs queens"
-"Drones" 1.0 0 -11221820 true "" "plot zone-sigs drones"
+"Workers" 1.0 0 -4079321 true "" "plotxy ( ticks / 100) zone-sigs workers"
+"Queen" 1.0 0 -5825686 true "" "plotxy (ticks / 100) zone-sigs queens"
+"Drones" 1.0 0 -11221820 true "" "plotxy (ticks / 100) zone-sigs drones"
 
 PLOT
 806
@@ -911,7 +911,7 @@ PLOT
 804
 699
 Spatial zone signatures per dominance level
-Time
+Days
 Spatial zone signature
 0.0
 10.0
@@ -921,9 +921,9 @@ true
 true
 "" ""
 PENS
-"Low (< -.5σ)" 1.0 0 -2674135 true "" "ifelse count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ]) \nifelse count low-workers > 0\n[ plot zone-sigs low-workers ]\n[ plot 0 ]\n]\n[ plot 0]"
-"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "ifelse count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ]) \nifelse count med-workers > 0\n[ plot zone-sigs med-workers ]\n[ plot 0 ]\n]\n[ plot 0 ]"
-"High (> +.5σ)" 1.0 0 -10899396 true "" "ifelse count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\nifelse count high-workers > 0 \n[ plot zone-sigs high-workers ]\n[ plot 0 ]\n]\n[ plot 0 ]"
+"Low (< -.5σ)" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ]) \nif count low-workers > 0\n[ plotxy (ticks / 100) zone-sigs low-workers ]\n]"
+"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ]) \nif count med-workers > 0\n[ plotxy (ticks / 100) zone-sigs med-workers ]\n]"
+"High (> +.5σ)" 1.0 0 -10899396 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\nif count high-workers > 0 \n[ plotxy (ticks / 100) zone-sigs high-workers ]\n]"
 
 SWITCH
 476
@@ -932,7 +932,7 @@ SWITCH
 43
 age-dominance
 age-dominance
-1
+0
 1
 -1000
 
@@ -952,7 +952,7 @@ PLOT
 405
 927
 Time spent in center per dominance level
-NIL
+Days
 NIL
 0.0
 10.0
@@ -972,7 +972,7 @@ PLOT
 804
 927
 Time spent in periphery per dominance level
-NIL
+Days
 NIL
 0.0
 10.0
@@ -992,7 +992,7 @@ PLOT
 1203
 927
 Time spent outside per dominance level
-NIL
+Days
 NIL
 0.0
 10.0
