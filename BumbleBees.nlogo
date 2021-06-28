@@ -498,6 +498,46 @@ to check-var-dominance-interaction [ var min-sd max-sd ]
     ;;plot 0
   ]
 end
+
+to plot-dominance-groups [ var group-name fraction]
+  ;; plotting function
+  ;; all agents are by default in group "medium" unless they fall in the top (or bottom) fraction of dominance
+  ;; var is the variable being plotted
+
+  if count workers >= 3
+  [
+    let agent-group workers
+    let sorted-workers sort-on [ dom ] workers
+    let med-idx floor (2 + (length sorted-workers * fraction))
+
+    let lowset sublist sorted-workers 1 med-idx
+    let lows workers with [member? self lowset]
+
+    let flipped-workers reverse sorted-workers
+    let highset sublist flipped-workers 1 med-idx
+    let highs workers with [member? self highset]
+
+    let meds workers with [not (member? self lowset) and not (member? self highset)]
+
+    if group-name = "low"[
+      set agent-group lows
+    ]
+    if group-name = "med" [
+      set agent-group meds
+    ]
+    if group-name = "high" [
+      set agent-group highs
+    ]
+
+    let time-list (ifelse-value
+        var = "c" [ [ time-center / (age * 100) ] of agent-group ]
+        var = "p" [ [ time-periphery / (age * 100) ] of agent-group ]
+        var = "o" [ [ time-outside / (age * 100) ] of agent-group ]
+                  [ [ time-center / (age * 100) ] of agent-group ])
+    plotxy (ticks / 100) mean time-list
+  ]
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 746
@@ -962,9 +1002,9 @@ true
 true
 "" ""
 PENS
-"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"c\" -1 0.5"
-"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"c\" 0.5 0.5"
-"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"c\" 0.5 -1"
+"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"c\" \"low\" 0.1"
+"Med" 1.0 0 -1184463 true "" "plot-dominance-groups \"c\" \"med\" 0.1"
+"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"c\" \"high\" 0.1"
 
 PLOT
 407
@@ -982,9 +1022,9 @@ true
 true
 "" ""
 PENS
-"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"p\" -1 0.5"
-"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"p\" 0.5 0.5"
-"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"p\" 0.5 -1"
+"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"p\" \"low\" 0.1"
+"Med " 1.0 0 -1184463 true "" "plot-dominance-groups \"p\" \"med\" 0.1"
+"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"p\" \"high\" 0.1"
 
 PLOT
 806
@@ -1002,9 +1042,9 @@ true
 true
 "" ""
 PENS
-"Low (< -.5σ)" 1.0 0 -2674135 true "" "check-var-dominance-interaction \"o\" -1 0.5"
-"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "check-var-dominance-interaction \"o\" 0.5 0.5"
-"High (> +.5σ)" 1.0 0 -10899396 true "" "check-var-dominance-interaction \"o\" 0.5 -1"
+"Low" 1.0 0 -2674135 true "" "plot-dominance-groups \"o\" \"low\" 0.1"
+"Med" 1.0 0 -1184463 true "" "plot-dominance-groups \"o\" \"med\" 0.1"
+"High" 1.0 0 -10899396 true "" "plot-dominance-groups \"o\" \"high\" 0.1"
 
 SLIDER
 243
