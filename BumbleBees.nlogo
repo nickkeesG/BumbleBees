@@ -26,6 +26,9 @@ turtles-own [
   time-center
   time-periphery
   time-outside
+  discount-time-center
+  discount-time-periphery
+  discount-time-outside
   stress
   sex
 ]
@@ -37,6 +40,17 @@ breed [workers worker]
 breed [drones drone]
 breed [larvae larva]
 breed [eggs egg]
+
+to data.config
+  set x-coords []
+  set y-coords []
+  set time-center 0
+  set time-periphery 0
+  set time-outside 0
+  set discount-time-center (1 / 3)
+  set discount-time-periphery (1 / 3)
+  set discount-time-outside (1 / 3)
+end
 
 ;;CONFIG METHODS - for generating new members of each breed
 to queen.config
@@ -50,13 +64,8 @@ to queen.config
   set ovi-wait-time 0
   set in-flight? False
   set size 2
-  set x-coords []
-  set y-coords []
-  set time-center 0
-  set time-periphery 0
-  set time-outside 0
   set stress 0
-
+  data.config
 end
 
 to worker.config
@@ -65,12 +74,8 @@ to worker.config
   set age 0
   set in-flight? False
   set size 1.5
-  set x-coords []
-  set y-coords []
-  set time-center 0
-  set time-periphery 0
-  set time-outside 0
   set task "no-task"
+  data.config
 end
 
 to egg.config
@@ -101,12 +106,7 @@ to drone.config
   set color grey
   set task "no-task"
   set in-flight? False
-  ; For when we need it
-  set x-coords []
-  set y-coords []
-  set time-center 0
-  set time-periphery 0
-  set time-outside 0
+  data.config
 end
 
 ;;SETUP METHODS
@@ -165,6 +165,15 @@ to go
     if [region] of patch-here = "center" [ set time-center time-center + 1]
     if [region] of patch-here = "periphery" [ set time-periphery time-periphery + 1]
     if [region] of patch-here = "outside" [ set time-outside time-outside + 1]
+
+    ; update time spent in a region
+    let discount-factor 0.995
+    set discount-time-center (discount-time-center * discount-factor)
+    set discount-time-periphery (discount-time-periphery * discount-factor)
+    set discount-time-outside (discount-time-outside * discount-factor)
+    if [region] of patch-here = "center" [ set discount-time-center discount-time-center + (1 - discount-factor)]
+    if [region] of patch-here = "periphery" [ set discount-time-periphery discount-time-periphery + (1 - discount-factor)]
+    if [region] of patch-here = "outside" [ set discount-time-outside discount-time-outside + (1 - discount-factor)]
   ]
   ask (turtle-set queens newQueens workers drones) [
     if [region] of patch-at xcor ycor != "outside" [
@@ -272,7 +281,7 @@ end
 to flee [other-bee]
   set heading towards other-bee
   rt 180
-  set target one-of patches in-cone 5 20 with [distance myself > 2]
+  set target one-of patches in-cone 8 20 with [distance myself > 4]
   set heading towards target
   set task "flee"
   set color violet
@@ -530,10 +539,10 @@ to plot-dominance-groups [ var group-name fraction]
     ]
 
     let time-list (ifelse-value
-        var = "c" [ [ time-center / (age * 100) ] of agent-group ]
-        var = "p" [ [ time-periphery / (age * 100) ] of agent-group ]
-        var = "o" [ [ time-outside / (age * 100) ] of agent-group ]
-                  [ [ time-center / (age * 100) ] of agent-group ])
+        var = "c" [ [ discount-time-center ] of agent-group ]
+        var = "p" [ [ discount-time-periphery ] of agent-group ]
+        var = "o" [ [ discount-time-outside ] of agent-group ]
+                  [ [ discount-time-center ] of agent-group ])
     plotxy (ticks / 100) mean time-list
   ]
 
@@ -972,7 +981,7 @@ SWITCH
 43
 age-dominance
 age-dominance
-0
+1
 1
 -1000
 
