@@ -420,7 +420,7 @@ to increment-model-time
   ask turtles [ set age age + 0.01]
   ask (turtle-set queens workers) [ set food food - (digest-rate / 100)]
   ask queens [set ovi-wait-time ovi-wait-time - 0.01]
-  ask workers [
+  ask (turtle-set drones workers) [
     if age > 28 [
       die
     ]
@@ -919,7 +919,7 @@ pupa-dev-time-std
 pupa-dev-time-std
 0
 10
-2.0
+3.0
 1
 1
 days
@@ -1133,7 +1133,7 @@ stress-kill-threshold
 stress-kill-threshold
 0
 20
-10.0
+15.0
 1
 1
 NIL
@@ -1175,6 +1175,66 @@ PENS
 "Larvae" 1.0 0 -2674135 true "" "plotxy (ticks / 100) count larvae"
 "Pupae" 1.0 0 -955883 true "" "plotxy (ticks / 100) count pupae"
 "Drones" 1.0 0 -6459832 true "" "plotxy (ticks / 100) count drones"
+
+PLOT
+8
+929
+405
+1079
+Low dominance
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+true
+"" ""
+PENS
+"Center" 1.0 0 -16777216 true "" "smooth-plot \"c\" \"low\" 0.25"
+"Periphery" 1.0 0 -7500403 true "" "smooth-plot \"p\" \"low\" 0.25"
+"Outside" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"low\" 0.25"
+
+PLOT
+407
+929
+804
+1079
+Med dominance
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+true
+"" ""
+PENS
+"Center" 1.0 0 -16777216 true "" "smooth-plot \"c\" \"med\" 0.25"
+"Periphery" 1.0 0 -7500403 true "" "smooth-plot \"p\" \"med\" 0.25"
+"Outside" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"med\" 0.25"
+
+PLOT
+806
+929
+1203
+1079
+High dominance
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+true
+"" ""
+PENS
+"Center" 1.0 0 -16777216 true "" "smooth-plot \"c\" \"high\" 0.25"
+"Periphery" 1.0 0 -7500403 true "" "smooth-plot \"p\" \"high\" 0.25"
+"Outside" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"high\" 0.25"
 
 @#$#@#$#@
 ## WHAT IS IT?
