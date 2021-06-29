@@ -1243,6 +1243,7 @@ PENS
 "Center" 1.0 0 -16777216 true "" "smooth-plot \"c\" \"high\" 0.25"
 "Periphery" 1.0 0 -7500403 true "" "smooth-plot \"p\" \"high\" 0.25"
 "Outside" 1.0 0 -2674135 true "" "smooth-plot \"o\" \"high\" 0.25"
+
 SWITCH
 477
 46
