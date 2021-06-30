@@ -1601,6 +1601,91 @@ NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="Compare Dominance per Region" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="7000"/>
+    <metric>plot-dominance-groups "c" "low" 0.25</metric>
+    <metric>plot-dominance-groups "c" "med" 0.25</metric>
+    <metric>plot-dominance-groups "c" "high" 0.25</metric>
+    <metric>plot-dominance-groups "p" "low" 0.25</metric>
+    <metric>plot-dominance-groups "p" "med" 0.25</metric>
+    <metric>plot-dominance-groups "p" "high" 0.25</metric>
+    <metric>plot-dominance-groups "o" "low" 0.25</metric>
+    <metric>plot-dominance-groups "o" "med" 0.25</metric>
+    <metric>plot-dominance-groups "o" "high" 0.25</metric>
+    <enumeratedValueSet variable="dom-step">
+      <value value="0.15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="digest-rate">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="larva-dev-time-mean">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="dominance-behavior?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pupa-dev-time-mean">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="oviposit-time">
+      <value value="0.04"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flowers-per-forage">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="larva-dev-time-std">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stress-fert-threshold">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pupa-dev-time-std">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-honey-per-pot">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="honeypot-max-dist">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-honey-per-pot">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="queen-dom-init">
+      <value value="7.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stress-kill-threshold">
+      <value value="15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="age-dominance">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-dist-egg-egg">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="egg-hatch-time-std">
+      <value value="1.4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="worker-dom-init">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="dominance-radius">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-dist-honey-egg">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="egg-hatch-time-mean">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forage-load">
+      <value value="2"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
