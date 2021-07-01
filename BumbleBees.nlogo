@@ -592,10 +592,10 @@ NIL
 1
 
 SLIDER
-8
 10
-232
-43
+38
+234
+71
 queen-dom-init
 queen-dom-init
 0
@@ -607,10 +607,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-8
-45
-232
-78
+10
+73
+234
+106
 worker-dom-init
 worker-dom-init
 0
@@ -622,10 +622,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-8
-80
-232
-113
+493
+387
+717
+420
 dominance-radius
 dominance-radius
 0
@@ -637,10 +637,10 @@ patches
 HORIZONTAL
 
 SLIDER
-8
-115
-232
-148
+243
+38
+467
+71
 egg-hatch-time-mean
 egg-hatch-time-mean
 0
@@ -652,10 +652,10 @@ days
 HORIZONTAL
 
 SLIDER
-8
-150
-232
-183
+243
+73
+467
+106
 egg-hatch-time-std
 egg-hatch-time-std
 0
@@ -667,10 +667,10 @@ days
 HORIZONTAL
 
 SLIDER
-8
-185
-232
-218
+11
+213
+235
+246
 digest-rate
 digest-rate
 0
@@ -682,10 +682,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-8
-220
-232
-253
+491
+127
+715
+160
 honeypot-max-dist
 honeypot-max-dist
 0
@@ -697,10 +697,10 @@ patches
 HORIZONTAL
 
 SLIDER
-8
-255
-232
-288
+10
+249
+234
+282
 oviposit-time
 oviposit-time
 0
@@ -712,10 +712,10 @@ days
 HORIZONTAL
 
 SLIDER
-494
-274
-718
-307
+491
+207
+715
+240
 max-dist-egg-egg
 max-dist-egg-egg
 0
@@ -727,10 +727,10 @@ patches
 HORIZONTAL
 
 SLIDER
-496
-234
-720
-267
+493
+167
+717
+200
 max-dist-honey-egg
 max-dist-honey-egg
 0
@@ -742,10 +742,10 @@ patches
 HORIZONTAL
 
 MONITOR
-673
-88
-736
-133
+1207
+26
+1270
+71
 days
 days
 0
@@ -753,10 +753,10 @@ days
 11
 
 SLIDER
-8
-360
-232
-393
+492
+350
+716
+383
 forage-load
 forage-load
 0
@@ -768,10 +768,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-673
-135
-736
-180
+1207
+73
+1270
+118
 honey
 honey
 1
@@ -779,10 +779,10 @@ honey
 11
 
 SLIDER
-8
-395
-232
-428
+243
+110
+467
+143
 larva-dev-time-mean
 larva-dev-time-mean
 0
@@ -794,10 +794,10 @@ days
 HORIZONTAL
 
 SLIDER
-8
-430
-232
-463
+243
+145
+467
+178
 larva-dev-time-std
 larva-dev-time-std
 0
@@ -810,9 +810,9 @@ HORIZONTAL
 
 SLIDER
 242
-10
+181
 466
-43
+214
 pupa-dev-time-mean
 pupa-dev-time-mean
 0
@@ -825,9 +825,9 @@ HORIZONTAL
 
 SLIDER
 242
-45
+216
 466
-78
+249
 pupa-dev-time-std
 pupa-dev-time-std
 0
@@ -839,10 +839,10 @@ days
 HORIZONTAL
 
 SLIDER
+493
 242
-80
-466
-113
+717
+275
 max-honey-per-pot
 max-honey-per-pot
 0
@@ -854,10 +854,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-242
-115
-466
-148
+493
+277
+717
+310
 min-honey-per-pot
 min-honey-per-pot
 0
@@ -869,10 +869,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-242
-150
-466
-183
+493
+312
+717
+345
 flowers-per-forage
 flowers-per-forage
 0
@@ -884,10 +884,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-242
-185
-466
-218
+10
+106
+234
+139
 dom-step
 dom-step
 0
@@ -1038,10 +1038,10 @@ PENS
 "High-dom" 1.0 0 -10899396 true "" "if length time-high-o > 0 [\n  plotxy days smoothing-average time-high-o\n]"
 
 SLIDER
-243
-220
-465
-253
+11
+141
+233
+174
 stress-kill-threshold
 stress-kill-threshold
 0
@@ -1053,10 +1053,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-244
-256
-466
-289
+12
+177
+234
+210
 stress-fert-threshold
 stress-fert-threshold
 0
@@ -1162,9 +1162,9 @@ dominance-behavior?
 
 SLIDER
 245
-292
+320
 417
-325
+353
 smoothing
 smoothing
 0
@@ -1177,9 +1177,9 @@ HORIZONTAL
 
 SLIDER
 245
-329
+357
 456
-362
+390
 data-time-window
 data-time-window
 0
@@ -1192,9 +1192,9 @@ HORIZONTAL
 
 SLIDER
 246
-366
+394
 455
-399
+427
 dom-group-threshold
 dom-group-threshold
 0
@@ -1204,6 +1204,36 @@ dom-group-threshold
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+93
+13
+327
+43
+Parameters from original model
+12
+0.0
+1
+
+TEXTBOX
+512
+110
+716
+140
+Parameters for 2d-continuous
+12
+0.0
+1
+
+TEXTBOX
+255
+300
+418
+330
+Plotting/data parameters
+12
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
