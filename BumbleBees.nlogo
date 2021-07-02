@@ -39,7 +39,7 @@ turtles-own [
   ;DATA COLLECTION VARIABLES
   x-coords
   y-coords
-  locs
+  locs    ;; record of the region at each tick
   rand-id ;; a random id which does not relate to when a turtle is born
 ]
 
@@ -241,7 +241,7 @@ to select-task  ;; here a bee decides what to do
       if dominance-behavior? [
         let nearest-bee min-one-of other (turtle-set queens workers) with [not in-flight?] [distance myself]
         if (not (nearest-bee = NOBODY)) and (distance nearest-bee <= dominance-radius) [
-          dominate nearest-bee
+          dominate nearest-bee ;; if the bee loses the dominance interaction, it will select the task "flee"
         ]
       ]
     ]
@@ -265,7 +265,7 @@ to-report get-expected-honey ;;count the amount of honey, including the amount t
 end
 
 to build-honeypot
-  let center-patches patches with [region = "center"] ; variable introduced to improve time-complexity
+  let center-patches patches with [region = "center"] ; variable introduced to improve time-complexity.
   let patches-near-honeypot center-patches with [
     distance min-one-of center-patches with [honeypot?] [distance self] <= honeypot-max-dist
   ]
@@ -285,16 +285,6 @@ to forage
   set in-flight? True ;;bees move faster when flying, and also cannot be dominated during this time
   set task "forage"
   set flowers-visited 0
-end
-
-to flee [other-bee]
-  set heading towards other-bee
-  rt 180
-  set task-destination one-of patches in-cone 10 20 with [distance myself > 8]
-  set heading towards task-destination
-  set task "flee"
-  set color violet
-  set busy? True
 end
 
 to lay-egg
@@ -330,9 +320,9 @@ to dominate [nearest-bee]
   set dom max list (dom + ((k - p) * dom-step)) 0.1
   ask nearest-bee [ set dom max list (dom - ((k - p) * dom-step)) 0.1]
 
-  if ((is-queen? self) and (task = "lay-egg") and (task-destination = patch-here))
+  if ((is-queen? self) and (busy?) and (task = "lay-egg") and (task-destination = patch-here))
     [ ifelse (k = 1) [set stress stress + 1] [set stress stress + 2]]
-  if ((is-queen? nearest-bee) and ([(task = "lay-egg") and (task-destination = patch-here)] of nearest-bee = True)) [ ifelse (k = 1)
+  if ((is-queen? nearest-bee) and ([(busy?) and (task = "lay-egg") and (task-destination = patch-here)] of nearest-bee = True)) [ ifelse (k = 1)
     [ask nearest-bee [set stress stress + 1]] [ ask nearest-bee [set stress stress + 2]]]
 
   ifelse k = 1 [
@@ -343,6 +333,16 @@ to dominate [nearest-bee]
   ]
 end
 
+to flee [other-bee]
+  set heading towards other-bee
+  rt 180
+  set task-destination one-of patches in-cone (flee-distance + 1) 20 with [distance myself > (flee-distance - 1)]
+  set heading towards task-destination
+  set task "flee"
+  set color violet
+  set busy? True
+end
+
 to no-task
   set task "no-task"
   set task-destination one-of patches with [not (region = "outside") and (distance myself < 4)]
@@ -350,6 +350,7 @@ to no-task
   set heading towards task-destination
 end
 
+;Here, the final step of any task is executed.
 to finish-task
   if task = "eat-honey" [
     let bite min list dom 1
@@ -414,7 +415,7 @@ to increment-model-time
   ask turtles [ set age age + 0.01]
   ask (turtle-set queens workers) [ set food food - (digest-rate / 100)]
   ask queens [set ovi-wait-time ovi-wait-time - 0.01]
-  ask (turtle-set drones workers) [
+  ask (turtle-set workers) [
     if age > 28 [
       die
     ]
@@ -423,15 +424,18 @@ to increment-model-time
   tick
 end
 
+;For generating smoother looking plots, return an average of several ticks
 to-report smoothing-average [l]
   ifelse length l <= smoothing [ report mean l ] [ report mean sublist l 0 smoothing]
 end
 
-
+;Collect all the data in this tick to be used in the plots
 to collect-data
   ask (turtle-set queens workers drones) [
-    set x-coords fput xcor x-coords
-    set y-coords fput ycor y-coords
+    if not in-flight? [
+      set x-coords fput xcor x-coords
+      set y-coords fput ycor y-coords
+    ]
     if [region] of patch-here = "outside" [ set locs fput "o" locs ]
     if [region] of patch-here = "periphery" [ set locs fput "p" locs ]
     if [region] of patch-here = "center" [ set locs fput "c" locs ]
@@ -459,13 +463,15 @@ to collect-data
   ]
 end
 
+;; Get the fraction of time a single bee spends in a given region
 to-report get-time-in [_turtle region-code]
   let count-total 0
   foreach locs [x -> if x = region-code [set count-total count-total + 1]]
   report count-total / length locs
 end
 
-to-report get-dom-group [group-name] ;; report either the agentset of low, med, or high dominance workers
+;; Get either the agentset of low, med, or high dominance workers
+to-report get-dom-group [group-name]
   let sorted-workers sort-on [rand-id] workers ;if there is no dominance, group workers according to a random number
   if dominance-behavior? [ set sorted-workers sort-on [dom] workers ]
 
@@ -482,13 +488,10 @@ to-report get-dom-group [group-name] ;; report either the agentset of low, med, 
     report workers with [member? self sublist sorted-workers first-high-idx length sorted-workers ]
   ]
 
-  report workers
+  report []
 end
 
-
-
-; Reporting and statistics functions
-
+;Get the spatial zone signature of a single bee
 to-report zone-sig [ _turtle ] ;; turtle method
   ifelse length x-coords > 1 [
     let x-sd standard-deviation x-coords
@@ -500,8 +503,9 @@ to-report zone-sig [ _turtle ] ;; turtle method
   ]
 end
 
-to-report zone-sigs [ _breed ] ;; agent set method
-  let relevant-agents (turtle-set _breed) with [ length x-coords > 1 ]
+;Get the average spatial zone signature of an agentset
+to-report zone-sigs [ a-set ]
+  let relevant-agents (turtle-set a-set) with [ length x-coords > 1 ]
   ifelse count relevant-agents > 0
   [
     report mean [ zone-sig self ] of relevant-agents
@@ -509,24 +513,6 @@ to-report zone-sigs [ _breed ] ;; agent set method
   [
     report 0
   ]
-
-end
-
-to-report centroid [ _turtle ] ;; turtle method
-  if length x-coords > 0 [
-    let x-centroid sum x-coords / length x-coords
-    let y-centroid sum y-coords / length y-coords
-  ]
-end
-
-to-report calculate-centroids [ _breed ] ;; agent set method
-  let relevant-agents (turtle-set _breed) with [ length x-coords > 1 ]
-  if count relevant-agents > 0 [
-    let x-centroid mean ( map [ x -> sum x / length x ] [ x-coords] of _breed  )
-    let y-centroid mean ( map [ y -> sum y / length y ] [ y-coords] of _breed  )
-    report list x-centroid y-centroid
-  ]
-  ; can i just not report anything if i don't want to?
 
 end
 @#$#@#$#@
@@ -623,9 +609,9 @@ HORIZONTAL
 
 SLIDER
 493
-387
+365
 717
-420
+398
 dominance-radius
 dominance-radius
 0
@@ -683,9 +669,9 @@ HORIZONTAL
 
 SLIDER
 491
-127
+105
 715
-160
+138
 honeypot-max-dist
 honeypot-max-dist
 0
@@ -713,9 +699,9 @@ HORIZONTAL
 
 SLIDER
 491
-207
+185
 715
-240
+218
 max-dist-egg-egg
 max-dist-egg-egg
 0
@@ -728,9 +714,9 @@ HORIZONTAL
 
 SLIDER
 493
-167
+145
 717
-200
+178
 max-dist-honey-egg
 max-dist-honey-egg
 0
@@ -754,9 +740,9 @@ days
 
 SLIDER
 492
-350
+328
 716
-383
+361
 forage-load
 forage-load
 0
@@ -840,9 +826,9 @@ HORIZONTAL
 
 SLIDER
 493
-242
+220
 717
-275
+253
 max-honey-per-pot
 max-honey-per-pot
 0
@@ -855,9 +841,9 @@ HORIZONTAL
 
 SLIDER
 493
-277
+255
 717
-310
+288
 min-honey-per-pot
 min-honey-per-pot
 0
@@ -870,9 +856,9 @@ HORIZONTAL
 
 SLIDER
 493
-312
+290
 717
-345
+323
 flowers-per-forage
 flowers-per-forage
 0
@@ -952,14 +938,14 @@ true
 true
 "" ""
 PENS
-"Low (< -.5σ)" 1.0 0 -2674135 true "" "if count workers > 1\n[\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet low-workers (workers with [ dom < (dom-avg - 1 * dom-sd) ]) \nif count low-workers > 0\n[ plotxy (ticks / 100) zone-sigs low-workers ]\n]"
-"Med [-.5σ, +.5σ)" 1.0 0 -1184463 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet med-workers (workers with [ dom >= (dom-avg - 1 * dom-sd ) and dom < (dom-avg + 1 * dom-sd) ]) \nif count med-workers > 0\n[ plotxy (ticks / 100) zone-sigs med-workers ]\n]"
-"High (> +.5σ)" 1.0 0 -10899396 true "" "if count workers > 1 [\nlet dom-sd standard-deviation [ dom ] of workers\nlet dom-avg mean [ dom ] of workers\n\nlet high-workers (workers with [ dom >= (dom-avg + 1 * dom-sd ) ])\nif count high-workers > 0 \n[ plotxy (ticks / 100) zone-sigs high-workers ]\n]"
+"Low-dom" 1.0 0 -2674135 true "" "if count workers > 3 [\n  let low-doms get-dom-group \"low-dom\" \n  if count low-doms > 0\n  [ plotxy days zone-sigs low-doms ]\n]"
+"Med-dom" 1.0 0 -1184463 true "" "if count workers > 3 [\n  let med-doms get-dom-group \"med-dom\" \n  if count med-doms > 0\n  [ plotxy days zone-sigs med-doms ]\n]"
+"High-dom" 1.0 0 -10899396 true "" "if count workers > 3 [\n  let high-doms get-dom-group \"high-dom\" \n  if count high-doms > 0\n  [ plotxy days zone-sigs high-doms ]\n]"
 
 SWITCH
 476
 10
-619
+662
 43
 age-dominance
 age-dominance
@@ -1046,7 +1032,7 @@ stress-kill-threshold
 stress-kill-threshold
 0
 20
-15.0
+3.0
 1
 1
 NIL
@@ -1061,7 +1047,7 @@ stress-fert-threshold
 stress-fert-threshold
 0
 20
-5.0
+1.0
 1
 1
 NIL
@@ -1198,8 +1184,8 @@ SLIDER
 dom-group-threshold
 dom-group-threshold
 0
-0.33
-0.2
+0.3
+0.25
 0.01
 1
 NIL
@@ -1217,9 +1203,9 @@ Parameters from original model
 
 TEXTBOX
 512
-110
+88
 716
-140
+118
 Parameters for 2d-continuous
 12
 0.0
@@ -1234,6 +1220,21 @@ Plotting/data parameters
 12
 0.0
 1
+
+SLIDER
+494
+402
+707
+435
+flee-distance
+flee-distance
+0
+20
+7.0
+1
+1
+patches
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
